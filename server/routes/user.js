@@ -4,8 +4,9 @@ const userController = require('../controllers/userController');
 
 // Routes
 router.get('/', userController.get_home);
+router.post('/', userController.post_home);
 router.get('/register', userController.get_register)
-router.post('/register', userController.post_register)
+router.post('/register', userController.post_register);
 // router.post('/', userController.find);
 // router.get('/adduser', userController.form);
 // router.post('/adduser', userController.create);

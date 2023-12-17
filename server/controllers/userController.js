@@ -14,15 +14,42 @@ exports.get_home = (req, res) => {
   res.sendFile(absolutePath);
 }
 
+exports.post_home = (req, res) => {
+  const absolutePath = path.resolve(__dirname, '../../pawhacks1.0/index.html');
+  res.sendFile(absolutePath);
+}
+
 exports.get_register = (req, res) => {
   const absolutePath = path.resolve(__dirname, '../../pawhacks1.0/register.html');
   res.sendFile(absolutePath);
 }
 
 exports.post_register = (req, res) => {
-  const absolutePath = path.resolve(__dirname, '../../pawhacks1.0/register.html');
-  res.sendFile(absolutePath);
-}
+  const { first_name, last_name, email, username, password, phone_number, university } = req.body;
+
+  // Break the query into multiple lines for better readability
+  let query = `
+    INSERT INTO users
+    SET 
+      first_name = ?, 
+      last_name = ?, 
+      email = ?, 
+      username = ?, 
+      password_hash = ?, 
+      phone_number = ?, 
+      university = ?
+  `;
+
+  // Execute the query
+  connection.query(query, [first_name, last_name, email, username, password, phone_number, university], (err, rows) => {
+    if (!err) {
+      res.render('home', { rows });
+    } else {
+      console.log(err);
+    }
+    console.log('The data from user table: \n', rows);
+  });
+};
 
 
 
