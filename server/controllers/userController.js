@@ -10,7 +10,7 @@ let connection = mysql.createConnection({
 });
 
 exports.get_home = (req, res) => {
-  const absolutePath = path.resolve(__dirname, '../../pawhacks1.0/index.html');
+  const absolutePath  = path.resolve(__dirname, '../../pawhacks1.0/index.html');
   res.sendFile(absolutePath);
 }
 
@@ -50,6 +50,7 @@ exports.post_register = (req, res) => {
     console.log('The data from user table: \n', rows);
   });
 };
+
 
 
 
