@@ -1,4 +1,3 @@
-
 const passport = require('passport');
 
 exports.authenticateGoogle = passport.authenticate('google', { scope: ['email', 'profile'] });

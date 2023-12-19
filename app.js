@@ -5,8 +5,6 @@ const session = require('express-session');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
 
-//const bodyParser = require('body-parser'); // No longer Required
-//const mysql = require('mysql'); // Not required -> moved to userController
 require('./server/controllers/authController');
 require('dotenv').config();
 
@@ -17,7 +15,7 @@ function isLoggedIn(req, res, next) {
     req.user ? next() : res.sendStatus(401);
 }
   
-app.use(session({ secret: 'cats', resave: false, saveUninitialized: true }));
+app.use(session({ secret: process.env.SECRET_SESSION, resave: false, saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
 
