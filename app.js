@@ -10,10 +10,6 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 5000;
-
-function isLoggedIn(req, res, next) {
-    req.user ? next() : res.sendStatus(401);
-}
   
 app.use(session({ secret: process.env.SECRET_SESSION, resave: false, saveUninitialized: true }));
 app.use(passport.initialize());
@@ -26,6 +22,20 @@ app.use(express.urlencoded({ extended: true }));
 // Parse application/json
 // app.use(bodyParser.json());
 app.use(express.json()); // New
+
+app.use(function (req, res, next) {
+    res.header('Cache-Control', 'no-store');
+    next();
+});
+
+app.use(session({
+secret: process.env.SECRET_SESSION,
+resave: false,
+saveUninitialized: true,
+rolling: true,
+cookie: { maxAge: 3600000 } // 1 hour for example
+}));
+  
 
 // Static Files
 // app.use(express.static('public'));
@@ -43,6 +53,14 @@ passport.use(new GoogleStrategy({
 }, function(accessToken, refreshToken, profile, done) {
     return done(null, profile);
 }));
+
+// app.use((req, res, next) => {
+//     if (req.path !== '/login' && req.path !== '/auth/google' && !req.isAuthenticated()) {
+//       res.redirect('/login');
+//     } else {
+//       next();
+//     }
+//   });
 
 passport.serializeUser(function(user, done) {
     done(null, user);
