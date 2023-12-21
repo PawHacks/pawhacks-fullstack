@@ -51,6 +51,47 @@ exports.post_register = (req, res) => {
   });
 };
 
+exports.view_application = (req, res) => {
+  if (req.isAuthenticated()) {
+      // User is authenticated, render the application page
+      res.render('application'); 
+  } else {
+      // User is not authenticated, redirect to the login page
+      res.redirect('/login');
+  }
+}
+
+exports.submit_application = (req, res) => { 
+  const { university, phone_number } = req.body; 
+  console.log(university, phone_number)
+
+  if(req.isAuthenticated()) { 
+    const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.id
+    console.log(google_id)
+    let query = ` 
+      UPDATE users 
+      SET 
+        university = ?, 
+        phone_number = ? 
+      WHERE google_id = ?
+    `;
+
+    connection.query(query, [university, phone_number, google_id], (err, result) => { 
+      if (err) {
+        // Handle the error, maybe log it and send a response to the client
+        console.error("Error updating user data: ", err);
+        res.status(500).send('Error updating your information');
+      } else {
+        // Handle a successful update, maybe send a success message to the client
+        console.log("User data updated successfully");
+        res.send('Information updated successfully');
+      }
+    });
+  } else {
+    // User is not authenticated
+    res.status(401).send('You need to log in to submit this form');
+  }
+}
 
 
 

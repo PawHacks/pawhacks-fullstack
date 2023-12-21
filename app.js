@@ -4,45 +4,34 @@ const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
-
-require('./server/controllers/authController');
+const mysql = require('mysql');
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 5000;
-  
-app.use(session({ secret: process.env.SECRET_SESSION, resave: false, saveUninitialized: true }));
-app.use(passport.initialize());
-app.use(passport.session());
 
-// Parsing middleware
-// Parse application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true })); 
-
-// Parse application/json
-// app.use(bodyParser.json());
-app.use(express.json()); // New
-
-app.use(function (req, res, next) {
-    res.header('Cache-Control', 'no-store');
-    next();
+// Connection Pool
+let connection = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME
 });
 
 app.use(session({
-secret: process.env.SECRET_SESSION,
-resave: false,
-saveUninitialized: true,
-rolling: true,
-cookie: { maxAge: 3600000 } // 1 hour for example
+    secret: process.env.SECRET_SESSION,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 3600000 }
 }));
-  
 
-// Static Files
-// app.use(express.static('public'));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'pawhacks1.0')));
 
-// Templating Engine
-const handlebars = exphbs.create({ extname: '.hbs', });
+const handlebars = exphbs.create({ extname: '.hbs' });
 app.engine('.hbs', handlebars.engine);
 app.set('view engine', '.hbs');
 
@@ -51,29 +40,54 @@ passport.use(new GoogleStrategy({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: "http://localhost:5000/auth/google/callback"
 }, function(accessToken, refreshToken, profile, done) {
-    return done(null, profile);
+    console.log(profile)
+    const googleId = profile.id;
+    const email = profile.emails[0].value;
+    const firstName = profile.name.givenName;
+    const lastName = profile.name.familyName;
+    const fullName = profile.displayName;
+
+    connection.query('SELECT * FROM users WHERE email = ?', [email], function(err, users) {
+        if (err) return done(err);
+
+        if (users.length) {
+            return done(null, users[0]);
+        } else {
+            let insertQuery = `INSERT INTO users (google_id, first_name, last_name, full_name, email) VALUES (?, ?, ?, ?, ?)`;
+            connection.query(insertQuery, [googleId, firstName, lastName, fullName, email], function(err, result) {
+                if (err) return done(err);
+
+                let newUser = { id: result.insertId, google_id: googleId, email: email };
+                return done(null, newUser);
+            });
+        }
+    });
 }));
 
-// app.use((req, res, next) => {
-//     if (req.path !== '/login' && req.path !== '/auth/google' && !req.isAuthenticated()) {
-//       res.redirect('/login');
-//     } else {
-//       next();
-//     }
-//   });
-
 passport.serializeUser(function(user, done) {
-    done(null, user);
+    // console.log(user)
+    done(null, user.google_id);
 });
 
-passport.deserializeUser(function(user, done) {
-    done(null, user);
+passport.deserializeUser(function(google_id, done) {
+    // console.log("Deserializing user with Google ID:", google_id); // Log for debugging
+    connection.query('SELECT * FROM users WHERE google_id = ?', [google_id], function(err, users) {
+        if (err) return done(err);
+        if (users.length > 0) {
+            console.log("Found user:", users[0]); // Log found user
+            done(null, users[0]);
+        } else {
+            // console.log("User not found for Google ID:", google_id); // Log if not found
+            done(new Error("User not found"), null);
+        }
+    });
 });
 
-const userRotues = require('./server/routes/userRoutes');
-app.use('/', userRotues);   
 
 const authRoutes = require('./server/routes/authRoutes');
 app.use('/', authRoutes);
+
+const userRotues = require('./server/routes/userRoutes');
+app.use('/', userRotues);  
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
