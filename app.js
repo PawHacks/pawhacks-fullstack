@@ -19,44 +19,46 @@ let connection = mysql.createConnection({
 });
 
 app.use(session({
-    secret: process.env.SECRET_SESSION,
+    secret: process.env.SECRET_SESSION, 
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge: 3600000 }
+    cookie: { maxAge: 3600000 } //cookie resets after 1 hour
 }));
 
-app.use(passport.initialize());
+app.use(passport.initialize()); 
 app.use(passport.session());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'pawhacks1.0')));
 
-const handlebars = exphbs.create({ extname: '.hbs' });
+const handlebars = exphbs.create({ extname: '.hbs' }); //loads handlebars for html templates
 app.engine('.hbs', handlebars.engine);
 app.set('view engine', '.hbs');
 
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:5000/auth/google/callback"
+    callbackURL: "http://localhost:5000/auth/google/callback" //redirects to this url after authentication
 }, function(accessToken, refreshToken, profile, done) {
     console.log(profile)
-    const googleId = profile.id;
-    const email = profile.emails[0].value;
+    const googleId = profile.id; //get google id
+    const email = profile.emails[0].value; // get email
     const firstName = profile.name.givenName;
     const lastName = profile.name.familyName;
     const fullName = profile.displayName;
 
     connection.query('SELECT * FROM users WHERE email = ?', [email], function(err, users) {
         if (err) return done(err);
-
+        
+        // if user already exists, return that user
         if (users.length) {
             return done(null, users[0]);
         } else {
+            // if user does not exist, insert that user into the database
             let insertQuery = `INSERT INTO users (google_id, first_name, last_name, full_name, email) VALUES (?, ?, ?, ?, ?)`;
             connection.query(insertQuery, [googleId, firstName, lastName, fullName, email], function(err, result) {
                 if (err) return done(err);
-
+                // if user does not exist, return the new user just created
                 let newUser = { id: result.insertId, google_id: googleId, email: email };
                 return done(null, newUser);
             });
@@ -64,11 +66,13 @@ passport.use(new GoogleStrategy({
     });
 }));
 
+// serializes a user - stores user in session
 passport.serializeUser(function(user, done) {
     // console.log(user)
     done(null, user.google_id);
 });
 
+// converts user session into user data, searching from database
 passport.deserializeUser(function(google_id, done) {
     // console.log("Deserializing user with Google ID:", google_id); // Log for debugging
     connection.query('SELECT * FROM users WHERE google_id = ?', [google_id], function(err, users) {
@@ -83,11 +87,12 @@ passport.deserializeUser(function(google_id, done) {
     });
 });
 
-
+// routes
 const authRoutes = require('./server/routes/authRoutes');
 app.use('/', authRoutes);
 
 const userRotues = require('./server/routes/userRoutes');
 app.use('/', userRotues);  
 
+// local port
 app.listen(port, () => console.log(`Listening on port ${port}`));

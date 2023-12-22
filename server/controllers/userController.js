@@ -62,8 +62,8 @@ exports.view_application = (req, res) => {
 }
 
 exports.submit_application = (req, res) => { 
-  const { university, phone_number } = req.body; 
-  console.log(university, phone_number)
+  const { university, phone_number, birthdate, have_id, hackathon_experience } = req.body; 
+  console.log(university, phone_number, birthdate, have_id, hackathon_experience)
 
   if(req.isAuthenticated()) { 
     const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.id
@@ -72,11 +72,14 @@ exports.submit_application = (req, res) => {
       UPDATE users 
       SET 
         university = ?, 
-        phone_number = ? 
+        phone_number = ?, 
+        birthdate = ?, 
+        have_id = ?, 
+        hackathon_experience = ?
       WHERE google_id = ?
     `;
 
-    connection.query(query, [university, phone_number, google_id], (err, result) => { 
+    connection.query(query, [university, phone_number, birthdate, have_id, hackathon_experience, google_id], (err, result) => { 
       if (err) {
         // Handle the error, maybe log it and send a response to the client
         console.error("Error updating user data: ", err);
