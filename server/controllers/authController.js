@@ -1,4 +1,13 @@
 const passport = require('passport');
+const mysql = require('mysql');
+
+// Connection Pool
+let connection = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME
+});
 
 exports.authenticateGoogle = passport.authenticate('google', { scope: ['email', 'profile'] });
 
@@ -9,7 +18,22 @@ exports.googleCallback = (req, res, next) => {
 
         req.login(user, function(err) {
             if (err) { return next(err); }
-            return res.redirect('/protected');
+            const google_id = req.user.google_id; 
+            let query = ` 
+            SELECT * 
+            FROM USERS 
+            WHERE google_id = ?
+            `; 
+
+            connection.query(query, [google_id], (err, result) => { 
+                const user = result[0]; 
+                console.log("result")
+                if(Object.values(user).some(value => value === null || value === undefined)) { 
+                    return res.redirect('/application')
+                } else { 
+                    return res.redirect('/create_team')
+                }
+            })
         });
     })(req, res, next);
 };

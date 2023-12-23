@@ -19,37 +19,61 @@ exports.post_home = (req, res) => {
   res.sendFile(absolutePath);
 }
 
-exports.get_register = (req, res) => {
-  const absolutePath = path.resolve(__dirname, '../../pawhacks1.0/register.html');
-  res.sendFile(absolutePath);
+exports.view_login = (req, res) => {
+  res.render('login')
 }
 
-exports.post_register = (req, res) => {
-  const { first_name, last_name, email, username, password, phone_number, university } = req.body;
+exports.view_create_team = (req, res) => { 
+  res.render('create_team')
+}
 
-  // Break the query into multiple lines for better readability
-  let query = `
-    INSERT INTO users
-    SET 
-      first_name = ?, 
-      last_name = ?, 
-      email = ?, 
-      username = ?, 
-      password_hash = ?, 
-      phone_number = ?, 
-      university = ?
+exports.submit_create_team = (req, res) => { 
+  const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.id
+  console.log(google_id)
+  const { team_name, is_open} = req.body; 
+  const is_open_boolean = is_open === "true" ? 1:0;
+  const query = ` 
+  INSERT 
+  INTO teams 
+  (team_name, is_open, created_by_google_id)
+  VALUES (?, ?, ?)
   `;
-
-  // Execute the query
-  connection.query(query, [first_name, last_name, email, username, password, phone_number, university], (err, rows) => {
-    if (!err) {
-      res.render('home', { rows });
+  connection.query(query, [team_name, is_open_boolean, google_id], (err, result) => { 
+    if(!err){ 
+      return res.render('create_team', {result});
     } else {
       console.log(err);
     }
-    console.log('The data from user table: \n', rows);
-  });
-};
+    
+  })
+}
+
+// exports.post_register = (req, res) => {
+//   const { first_name, last_name, email, username, password, phone_number, university } = req.body;
+// 
+//   // Break the query into multiple lines for better readability
+//   let query = `
+//     INSERT INTO users
+//     SET 
+//       first_name = ?, 
+//       last_name = ?, 
+//       email = ?, 
+//       username = ?, 
+//       password_hash = ?, 
+//       phone_number = ?, 
+//       university = ?
+//   `;
+
+//   // Execute the query
+//   connection.query(query, [first_name, last_name, email, username, password, phone_number, university], (err, rows) => {
+//     if (!err) {
+//       res.render('home', { rows });
+//     } else {
+//       console.log(err);
+//     }
+//     console.log('The data from user table: \n', rows);
+//   });
+// };
 
 exports.view_application = (req, res) => {
   if (req.isAuthenticated()) {
@@ -63,7 +87,8 @@ exports.view_application = (req, res) => {
 
 exports.submit_application = (req, res) => { 
   const { university, phone_number, birthdate, have_id, hackathon_experience } = req.body; 
-  console.log(university, phone_number, birthdate, have_id, hackathon_experience)
+  const have_id_boolean = have_id === "true" ? 1:0;
+  console.log(university, phone_number, birthdate, have_id_boolean, hackathon_experience)
 
   if(req.isAuthenticated()) { 
     const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.id
@@ -79,7 +104,7 @@ exports.submit_application = (req, res) => {
       WHERE google_id = ?
     `;
 
-    connection.query(query, [university, phone_number, birthdate, have_id, hackathon_experience, google_id], (err, result) => { 
+    connection.query(query, [university, phone_number, birthdate, have_id_boolean, hackathon_experience, google_id], (err, result) => { 
       if (err) {
         // Handle the error, maybe log it and send a response to the client
         console.error("Error updating user data: ", err);

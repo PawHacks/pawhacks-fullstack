@@ -1,0 +1,19 @@
+<h1>Create Team</h1>
+
+
+<form action="/create_team" method="POST">
+    <label for="team_name">Team Name</label><br>
+    <input type="input" id="team_name" name="team_name" placeholder="Team Paws"><br>
+
+    <label for="is_open">Do You Want Your Team To Be Open? (strangers can join)</label>
+    <fieldset>
+        <legend></legend>
+        <label for="open_yes">Yes:</label>
+        <input type="radio" id="open_yes" name="is_open" value="true" required>
+        
+        <label for="open_no">No:</label>
+        <input type="radio" id="open_no" name="is_open" value="false" required>
+    </fieldset>
+
+    <input type="submit" value="Submit"><br>
+</form>
