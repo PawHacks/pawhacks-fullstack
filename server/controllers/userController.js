@@ -29,7 +29,7 @@ exports.view_create_team = (req, res) => {
 
 exports.submit_create_team = (req, res) => { 
   const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.id
-  console.log(google_id)
+  // console.log(google_id)
   const { team_name, is_open} = req.body; 
   const is_open_boolean = is_open === "true" ? 1:0;
   const query = ` 
@@ -47,6 +47,30 @@ exports.submit_create_team = (req, res) => {
     
   })
 }
+
+exports.add_team_members = (req, res) => { 
+  const google_id = req.user.google_id; 
+  const { add_team_members_email } = req.body; 
+  const query = `
+    INSERT INTO team_members (team_id, member_id)
+    SELECT t.team_id, u.user_id
+    FROM (SELECT team_id FROM teams WHERE created_by_google_id = ?) as t,
+         (SELECT user_id FROM users WHERE email = ?) as u`;
+
+  connection.query(query, [google_id, add_team_members_email], (err, result) => { 
+    if (!err) { 
+      if (result.affectedRows > 0) {
+        res.send("Team member added successfully");
+      } else {
+        console.log(result)
+        res.status(404).send("Team or user not found");
+      }
+    } else { 
+      console.log(err);
+      res.status(500).send("An error occurred while adding the team member");
+    }
+  });
+};
 
 // exports.post_register = (req, res) => {
 //   const { first_name, last_name, email, username, password, phone_number, university } = req.body;

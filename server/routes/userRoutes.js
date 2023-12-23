@@ -11,6 +11,7 @@ router.get('/application', userController.view_application)
 router.post('/application', userController.submit_application)
 router.get('/create_team', userController.view_create_team)
 router.post('/create_team', userController.submit_create_team)
+router.post('/add_team_members', userController.add_team_members)
 // router.post('/', userController.find);
 // router.get('/adduser', userController.form);
 // router.post('/adduser', userController.create);
