@@ -24,38 +24,135 @@ exports.view_login = (req, res) => {
 }
 
 exports.view_create_team = (req, res) => { 
-  res.render('create_team')
-}
+  const google_id = req.user.google_id; // The logged-in user's Google ID
+
+  // Find the team ID where the user is a member
+  const queryFindTeam = `
+    SELECT team_id 
+    FROM team_members 
+    WHERE member_google_id = ?
+  `;
+
+  connection.query(queryFindTeam, [google_id], (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send('Error retrieving user team');
+    }
+
+    // Check if the user is part of a team
+    if (result.length !== 0) {
+      const teamID = result[0].team_id; // Get the single team ID
+
+      // Get the specific information of all the teammates from the users table
+      const queryGetTeammates = `
+        SELECT u.first_name, u.last_name, u.email, u.phone_number, u.university
+        FROM users u
+        INNER JOIN team_members tm ON u.google_id = tm.member_google_id
+        WHERE tm.team_id = ?
+      `;
+
+      connection.query(queryGetTeammates, [teamID], (err, teammates) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).send('Error retrieving team members information');
+        }
+
+        // Send the teammates' information to the client
+        res.render('create_team', {teammates:teammates});
+      });
+    } else { 
+      res.render('create_team')
+    } 
+
+    
+  });
+};
 
 exports.submit_create_team = (req, res) => { 
-  const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.id
-  // console.log(google_id)
-  const { team_name, is_open} = req.body; 
-  const is_open_boolean = is_open === "true" ? 1:0;
-  const query = ` 
-  INSERT 
-  INTO teams 
-  (team_name, is_open, created_by_google_id)
-  VALUES (?, ?, ?)
-  `;
-  connection.query(query, [team_name, is_open_boolean, google_id], (err, result) => { 
-    if(!err){ 
-      return res.render('create_team', {result});
-    } else {
+  const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.google_id
+  const { team_name, is_open } = req.body; 
+  const is_open_boolean = is_open === "true" ? 1 : 0;
+
+  // Check if the user already has a team
+  const queryCheckTeam = `SELECT * FROM teams WHERE created_by_google_id = ?`;
+  connection.query(queryCheckTeam, [google_id], (err, teams) => {
+    if (err) {
       console.log(err);
+      return res.status(500).send('Error checking for existing team');
     }
-    
-  })
-}
+
+    if (teams.length > 0) {
+      // User already has a team, so don't allow creating a new one
+      return res.status(409).send('You already have a team and cannot create another one');
+    }
+
+    // No existing team found for the user, proceed with team creation
+    connection.beginTransaction(err => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send('Error starting transaction');
+      }
+
+      // Insert the new team into the teams table
+      const queryInsertTeam = ` 
+        INSERT INTO teams (team_name, is_open, created_by_google_id)
+        VALUES (?, ?, ?)
+      `;
+      connection.query(queryInsertTeam, [team_name, is_open_boolean, google_id], (err, result) => { 
+        if (err) {
+          console.log(err);
+          // Rollback the transaction in case of error
+          connection.rollback(() => {
+            res.status(500).send('Error inserting team');
+          });
+          return;
+        }
+
+        // Get the team_id of the newly created team
+        const team_id = result.insertId;
+
+        // Insert the owner as the first team member
+        const queryInsertOwner = `
+          INSERT INTO team_members (team_id, member_google_id)
+          VALUES (?, ?)
+        `;
+        connection.query(queryInsertOwner, [team_id, google_id], (err, result) => { 
+          if (err) {
+            console.log(err);
+            // Rollback the transaction in case of error
+            connection.rollback(() => {
+              res.status(500).send('Error adding team owner to team members');
+            });
+            return;
+          }
+
+          // Commit the transaction if all operations were successful
+          connection.commit(err => {
+            if (err) {
+              console.log(err);
+              connection.rollback(() => {
+                res.status(500).send('Error during transaction commit');
+              });
+              return;
+            }
+
+            // Team creation was successful
+            res.redirect('/create_team');
+          });
+        });
+      });
+    });
+  });
+};
 
 exports.add_team_members = (req, res) => { 
   const google_id = req.user.google_id; 
   const { add_team_members_email } = req.body; 
   const query = `
-    INSERT INTO team_members (team_id, member_id)
-    SELECT t.team_id, u.user_id
+    INSERT INTO team_members (team_id, member_google_id)
+    SELECT t.team_id, u.google_id
     FROM (SELECT team_id FROM teams WHERE created_by_google_id = ?) as t,
-         (SELECT user_id FROM users WHERE email = ?) as u`;
+         (SELECT google_id FROM users WHERE email = ?) as u`;
 
   connection.query(query, [google_id, add_team_members_email], (err, result) => { 
     if (!err) { 
@@ -136,7 +233,7 @@ exports.submit_application = (req, res) => {
       } else {
         // Handle a successful update, maybe send a success message to the client
         console.log("User data updated successfully");
-        res.send('Information updated successfully');
+        res.redirect('/create_team')
       }
     });
   } else {

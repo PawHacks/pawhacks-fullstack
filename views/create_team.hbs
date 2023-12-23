@@ -32,6 +32,7 @@
       <th scope="col">Last Name</th>
       <th scope="col">Email</th>
       <th scope="col">Phone</th>
+      <th scope="col">University</th>
       <th scope="col" class="text-end">Action</th>
     </tr>
   </thead>
@@ -39,13 +40,14 @@
 
 
 
-    {{#each rows}}
+    {{#each teammates}}
     <tr>
       <th scope="row">{{this.id}}</th>
       <td>{{this.first_name}}</td>
       <td>{{this.last_name}}</td>
       <td>{{this.email}}</td>
-      <td>{{this.phone}}</td>
+      <td>{{this.phone_number}}</td>
+      <td>{{this.university}}</td>
       <td class="text-end">
         <a href="/viewuser/{{this.id}}" type="button" class="btn btn-light btn-small"><i class="bi bi-eye"></i> View</a>
         <a href="/edituser/{{this.id}}" type="button" class="btn btn-light btn-small"><i class="bi bi-pencil"></i>
