@@ -81,8 +81,8 @@ exports.submit_create_team = (req, res) => {
   const is_open_boolean = is_open === "true" ? 1 : 0;
 
   // Check if the user already has a team
-  const queryCheckTeam = `SELECT * FROM teams WHERE created_by_google_id = ?`;
-  connection.query(queryCheckTeam, [google_id], (err, teams) => {
+  const queryCheckTeam = `SELECT * FROM team_members WHERE member_google_id = ? AND accepted_invitation = ?`;
+  connection.query(queryCheckTeam, [google_id, "ACCEPTED"], (err, teams) => {
     if (err) {
       console.log(err);
       return res.status(500).send('Error checking for existing team');
@@ -123,7 +123,7 @@ exports.submit_create_team = (req, res) => {
           INSERT INTO team_members (team_id, member_google_id, accepted_invitation)
           VALUES (?, ?, ?)
         `;
-        connection.query(queryInsertOwner, [team_id, google_id, "PENDING"], (err, result) => { 
+        connection.query(queryInsertOwner, [team_id, google_id, "ACCEPTED"], (err, result) => { 
           if (err) {
             console.log(err);
             // Rollback the transaction in case of error
@@ -253,15 +253,16 @@ exports.accept_team_invitation = (req, res) => {
   const google_id = req.user.google_id; 
   const team_id = req.params.team_id;
   const query = ` 
-  UDPATE team_members
+  UPDATE team_members
   SET accepted_invitation = ? 
   WHERE member_google_id = ?
   AND team_id = ?
   `; 
-  connection.query(query, [ACCEPTED, google_id, team_id], (err, result) => { 
+  connection.query(query, ["ACCEPTED", google_id, team_id], (err, result) => { 
     if(!err) { 
       res.redirect('/create_team')
     } else { 
+      console.log(err)
       res.send('update did not work')
     }
   })
