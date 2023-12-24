@@ -22,6 +22,7 @@
       <th scope="col">Last Name</th>
       <th scope="col">Email</th>
       <th scope="col">Phone</th>
+      <th scope="col">Status</th>
       <th scope="col" class="text-end">Action</th>
     </tr>
   </thead>
@@ -34,6 +35,7 @@
       <td>{{this.last_name}}</td>
       <td>{{this.email}}</td>
       <td>{{this.phone}}</td>
+      <td></td>
       <td class="text-end">
         <a href="/viewuser/{{this.id}}" type="button" class="btn btn-light btn-small"><i class="bi bi-eye"></i> View</a>
         <a href="/edituser/{{this.id}}" type="button" class="btn btn-light btn-small"><i class="bi bi-pencil"></i>

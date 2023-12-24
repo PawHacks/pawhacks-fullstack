@@ -4,6 +4,7 @@ const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
+const Handlebars = require('handlebars');
 const mysql = require('mysql');
 require('dotenv').config();
 
@@ -34,6 +35,10 @@ app.use(express.static(path.join(__dirname, 'pawhacks1.0')));
 const handlebars = exphbs.create({ extname: '.hbs' }); //loads handlebars for html templates
 app.engine('.hbs', handlebars.engine);
 app.set('view engine', '.hbs');
+
+Handlebars.registerHelper('eq', function(arg1, arg2) {
+    return arg1 === arg2;
+});
 
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,

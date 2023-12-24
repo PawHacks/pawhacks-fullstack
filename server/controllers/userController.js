@@ -26,26 +26,31 @@ exports.view_login = (req, res) => {
 exports.view_create_team = (req, res) => { 
   const google_id = req.user.google_id; // The logged-in user's Google ID
 
-  // Find the team ID where the user is a member
-  const queryFindTeam = `
-    SELECT team_id 
-    FROM team_members 
-    WHERE member_google_id = ?
+  // Query to find the team and the owner's Google ID where the user is a member
+  const queryFindTeamAndOwner = `
+    SELECT t.team_id, t.created_by_google_id 
+    FROM team_members tm
+    INNER JOIN teams t ON tm.team_id = t.team_id
+    WHERE tm.member_google_id = ?
   `;
 
-  connection.query(queryFindTeam, [google_id], (err, result) => {
+  connection.query(queryFindTeamAndOwner, [google_id], (err, result) => {
     if (err) {
       console.log(err);
-      return res.status(500).send('Error retrieving user team');
+      return res.status(500).send('Error retrieving team and owner information');
     }
 
     // Check if the user is part of a team
     if (result.length !== 0) {
-      const teamID = result[0].team_id; // Get the single team ID
+      const teamID = result[0].team_id; // Get the team ID
+      const ownerGoogleID = result[0].created_by_google_id; // Get the owner's Google ID
+
+      // You now have the team ID and the owner's Google ID, and you can proceed
+      // with your logic, for example, retrieving all team members' information.
 
       // Get the specific information of all the teammates from the users table
       const queryGetTeammates = `
-        SELECT u.first_name, u.last_name, u.email, u.phone_number, u.university
+        SELECT u.first_name, u.last_name, u.email, u.phone_number, u.university, u.google_id
         FROM users u
         INNER JOIN team_members tm ON u.google_id = tm.member_google_id
         WHERE tm.team_id = ?
@@ -57,16 +62,20 @@ exports.view_create_team = (req, res) => {
           return res.status(500).send('Error retrieving team members information');
         }
 
-        // Send the teammates' information to the client
-        res.render('create_team', {teammates:teammates});
+        // Send the teammates' information to the client, including a flag indicating if the user is the owner
+        res.render('create_team', {
+          teammates: teammates,
+          is_owner: google_id === ownerGoogleID,
+          owner_google_id: ownerGoogleID,
+          team_id: teamID
+        });
       });
     } else { 
-      res.render('create_team')
+      res.render('create_team', { message: 'You are not part of any team.' });
     } 
-
-    
   });
 };
+
 
 exports.submit_create_team = (req, res) => { 
   const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.google_id
@@ -113,8 +122,8 @@ exports.submit_create_team = (req, res) => {
 
         // Insert the owner as the first team member
         const queryInsertOwner = `
-          INSERT INTO team_members (team_id, member_google_id)
-          VALUES (?, ?)
+          INSERT INTO team_members (team_id, member_google_id, accepted_invitation)
+          VALUES (?, ?, 0)
         `;
         connection.query(queryInsertOwner, [team_id, google_id], (err, result) => { 
           if (err) {
@@ -157,7 +166,7 @@ exports.add_team_members = (req, res) => {
   connection.query(query, [google_id, add_team_members_email], (err, result) => { 
     if (!err) { 
       if (result.affectedRows > 0) {
-        res.send("Team member added successfully");
+        res.redirect('/create_team')
       } else {
         console.log(result)
         res.status(404).send("Team or user not found");
@@ -241,6 +250,94 @@ exports.submit_application = (req, res) => {
     res.status(401).send('You need to log in to submit this form');
   }
 }
+
+exports.accept_team_invitation = (req, res) => { 
+  const google_id = req.user.google_id; 
+  const query = ` 
+  UDPATE team_members
+  SET accept_members = ? 
+  WHERE member_google_id = ?
+  `; 
+  connection.query(query, [google_id], (err, result) => { 
+    if(!err) { 
+      res.redirect('/create_team')
+    } else { 
+      res.send('update did not work')
+    }
+  })
+
+}
+
+// have to make it so team member cannot leave
+exports.remove_team_member = (req, res) => { 
+  const member_google_id = req.params.google_id;  // The Google ID of the member to remove
+
+  // First, find the team that this member is a part of
+  const queryFindTeamAndOwner = `
+    SELECT team_id 
+    FROM team_members 
+    WHERE member_google_id = ?
+  `;
+
+  connection.query(queryFindTeamAndOwner, [member_google_id], (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send('Error finding team member');
+    }
+
+    if (result.length === 0) {
+      return res.status(404).send('Team member not found');
+    }
+
+    const teamID = result[0].team_id;
+
+    // Now, ensure that this member is not the owner of the team
+    const queryCheckOwner = `
+      SELECT created_by_google_id 
+      FROM teams 
+      WHERE team_id = ?
+    `;
+
+    connection.query(queryCheckOwner, [teamID], (err, result) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send('Error checking team owner');
+      }
+
+      if (result.length === 0) {
+        return res.status(404).send('Team not found');
+      }
+
+      const owner_google_id = result[0].created_by_google_id;
+
+      // If the member is not the owner, proceed to remove
+      if (member_google_id !== owner_google_id) {
+        const queryRemoveMember = `
+          DELETE from team_members 
+          WHERE member_google_id = ? AND team_id = ?
+        `;
+
+        connection.query(queryRemoveMember, [member_google_id, teamID], (err, result) => { 
+          if (err) { 
+            console.log(err);
+            return res.status(500).send('Error removing team member');
+          }
+
+          if (result.affectedRows === 0) {
+            return res.status(404).send('No team member removed');
+          }
+
+          res.redirect('/create_team');
+        });
+      } else {
+        res.status(403).send('Cannot remove the team owner');
+      }
+    });
+  });
+};
+
+
+
 
 
 

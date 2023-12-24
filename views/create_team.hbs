@@ -17,13 +17,6 @@
     <input type="submit" value="Submit"><br>
 </form>
 
-<form action="/add_team_members" method="POST">
-  <label for="add_team_members_email">Add Team Members (enter email)</label><br>
-  <input type="input" id="add_team_members_email" name="add_team_members_email" placeholder="yourfriend@email.com">
-
-  <input type="submit" value="Submit"><br>
-</form>
-
 <table class="table table-bordered">
   <thead class="thead-dark">
     <tr>
@@ -33,11 +26,15 @@
       <th scope="col">Email</th>
       <th scope="col">Phone</th>
       <th scope="col">University</th>
+      <th scope="col">Status</th>
       <th scope="col" class="text-end">Action</th>
     </tr>
   </thead>
   <tbody>
 
+  <h5>Team  </h5>
+  <h5>Open Team:  </h5>
+  <h7>Open team means strangers can ask to join your team</h7>
 
 
     {{#each teammates}}
@@ -48,14 +45,21 @@
       <td>{{this.email}}</td>
       <td>{{this.phone_number}}</td>
       <td>{{this.university}}</td>
+      <td>Status</td>
       <td class="text-end">
-        <a href="/viewuser/{{this.id}}" type="button" class="btn btn-light btn-small"><i class="bi bi-eye"></i> View</a>
-        <a href="/edituser/{{this.id}}" type="button" class="btn btn-light btn-small"><i class="bi bi-pencil"></i>
-          Edit</a>
-        <a href="/{{this.id}}" type="button" class="btn btn-light btn-small"><i class="bi bi-person-x"></i> Delete</a>
+      {{#unless (eq this.google_id ../owner_google_id)}} <!-- Check if the current google_id is not the owner's -->
+        <a href="/remove_team_member/{{this.google_id}}" type="button" class="btn btn-light btn-small"><i class="bi bi-person-x"></i> Remove</a>
+      {{/unless}}   
       </td>
     </tr>
     {{/each}}
-
   </tbody>
 </table>
+  <h7>Max amount of members per team is 4</h7>
+
+<form action="/add_team_members" method="POST">
+  <label for="add_team_members_email">Add Team Members (enter email)</label><br>
+  <input type="input" id="add_team_members_email" name="add_team_members_email" placeholder="yourfriend@email.com">
+
+  <input type="submit" value="Submit"><br>
+</form>
