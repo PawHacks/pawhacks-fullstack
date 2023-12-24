@@ -268,6 +268,25 @@ exports.accept_team_invitation = (req, res) => {
   })
 }
 
+exports.decline_team_invitation = (req, res) => { 
+  const google_id = req.user.google_id; 
+  const team_id = req.params.team_id;
+  const query = ` 
+  UPDATE team_members
+  SET accepted_invitation = ? 
+  WHERE member_google_id = ?
+  AND team_id = ?
+  `; 
+  connection.query(query, ["DECLINED", google_id, team_id], (err, result) => { 
+    if(!err) { 
+      res.redirect('/create_team')
+    } else { 
+      console.log(err)
+      res.send('update did not work')
+    }
+  })
+}
+
 // have to make it so team member cannot leave
 exports.remove_team_member = (req, res) => { 
   const member_google_id = req.params.google_id;  // The Google ID of the member to remove

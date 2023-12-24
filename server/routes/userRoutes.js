@@ -13,6 +13,7 @@ router.get('/create_team', userController.view_create_team)
 router.post('/create_team', userController.submit_create_team)
 router.post('/add_team_members', userController.add_team_members)
 router.post('/accept_team_invitation/:google_id/:team_id', userController.accept_team_invitation)
+router.post('/decline_team_invitation/:google_id/:team_id', userController.decline_team_invitation)
 router.post('/remove_team_member/:google_id', userController.remove_team_member)
 // router.post('/change_team_owner', userController.leave_team)
 
