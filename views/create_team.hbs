@@ -45,11 +45,27 @@
       <td>{{this.email}}</td>
       <td>{{this.phone_number}}</td>
       <td>{{this.university}}</td>
-      <td>Status</td>
+      <td>
+        {{#if (eq this.google_id ../owner_google_id)}}
+          Team Owner
+        {{else}}
+          {{#if (eq accepted_invitation 'ACCEPTED')}}
+            Member - Accepted Invitation
+          {{else}}
+            {{#if (eq accepted_invitation 'PENDING')}}
+              Member - Pending Invitation
+            {{else}}
+              Not Member - Declined Invitation
+            {{/if}}
+          {{/if}}
+        {{/if}}
+      </td>
       <td class="text-end">
-      {{#unless (eq this.google_id ../owner_google_id)}} <!-- Check if the current google_id is not the owner's -->
-        <a href="/remove_team_member/{{this.google_id}}" type="button" class="btn btn-light btn-small"><i class="bi bi-person-x"></i> Remove</a>
-      {{/unless}}   
+      {{#if ../is_owner}} <!-- Check if the logged-in user is the team owner -->
+        {{#unless (eq this.google_id ../owner_google_id)}} <!-- Check if the current google_id is not the owner's -->
+          <a href="/remove_team_member/{{this.google_id}}" type="button" class="btn btn-light btn-small"><i class="bi bi-person-x"></i> Remove</a>
+        {{/unless}}  
+      {{/if}} 
       </td>
     </tr>
     {{/each}}

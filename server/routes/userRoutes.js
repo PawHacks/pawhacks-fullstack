@@ -12,7 +12,7 @@ router.post('/application', userController.submit_application)
 router.get('/create_team', userController.view_create_team)
 router.post('/create_team', userController.submit_create_team)
 router.post('/add_team_members', userController.add_team_members)
-router.post('/accept_team_invitation', userController.accept_team_invitation)
+router.post('/accept_team_invitation/:team_id', userController.accept_team_invitation)
 router.get('/remove_team_member/:google_id', userController.remove_team_member)
 // router.post('/change_team_owner', userController.leave_team)
 

@@ -50,7 +50,7 @@ exports.view_create_team = (req, res) => {
 
       // Get the specific information of all the teammates from the users table
       const queryGetTeammates = `
-        SELECT u.first_name, u.last_name, u.email, u.phone_number, u.university, u.google_id
+        SELECT u.first_name, u.last_name, u.email, u.phone_number, u.university, u.google_id, tm.accepted_invitation
         FROM users u
         INNER JOIN team_members tm ON u.google_id = tm.member_google_id
         WHERE tm.team_id = ?
@@ -61,7 +61,6 @@ exports.view_create_team = (req, res) => {
           console.log(err);
           return res.status(500).send('Error retrieving team members information');
         }
-
         // Send the teammates' information to the client, including a flag indicating if the user is the owner
         res.render('create_team', {
           teammates: teammates,
@@ -75,7 +74,6 @@ exports.view_create_team = (req, res) => {
     } 
   });
 };
-
 
 exports.submit_create_team = (req, res) => { 
   const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.google_id
@@ -123,9 +121,9 @@ exports.submit_create_team = (req, res) => {
         // Insert the owner as the first team member
         const queryInsertOwner = `
           INSERT INTO team_members (team_id, member_google_id, accepted_invitation)
-          VALUES (?, ?, 0)
+          VALUES (?, ?, ?)
         `;
-        connection.query(queryInsertOwner, [team_id, google_id], (err, result) => { 
+        connection.query(queryInsertOwner, [team_id, google_id, "PENDING"], (err, result) => { 
           if (err) {
             console.log(err);
             // Rollback the transaction in case of error
@@ -253,19 +251,20 @@ exports.submit_application = (req, res) => {
 
 exports.accept_team_invitation = (req, res) => { 
   const google_id = req.user.google_id; 
+  const team_id = req.params.team_id;
   const query = ` 
   UDPATE team_members
-  SET accept_members = ? 
+  SET accepted_invitation = ? 
   WHERE member_google_id = ?
+  AND team_id = ?
   `; 
-  connection.query(query, [google_id], (err, result) => { 
+  connection.query(query, [ACCEPTED, google_id, team_id], (err, result) => { 
     if(!err) { 
       res.redirect('/create_team')
     } else { 
       res.send('update did not work')
     }
   })
-
 }
 
 // have to make it so team member cannot leave
