@@ -1,23 +1,7 @@
-<h1>Create Team</h1>
+{{#if has_team}}
+  <h1>You are in a team. You cannot create another team. If you join another team, you will leave your current team.</h1>
 
-<form action="/create_team" method="POST">
-    <label for="team_name">Team Name</label><br>
-    <input type="input" id="team_name" name="team_name" placeholder="Team Paws"><br>
-
-    <label for="is_open">Do You Want Your Team To Be Open? (strangers can join)</label>
-    <fieldset>
-        <legend></legend>
-        <label for="open_yes">Yes:</label>
-        <input type="radio" id="open_yes" name="is_open" value="true" required>
-        
-        <label for="open_no">No:</label>
-        <input type="radio" id="open_no" name="is_open" value="false" required>
-    </fieldset>
-
-    <input type="submit" value="Submit"><br>
-</form>
-
-<table class="table table-bordered">
+  <table class="table table-bordered">
   <thead class="thead-dark">
     <tr>
       <th scope="col">#</th>
@@ -32,11 +16,9 @@
   </thead>
   <tbody>
 
-  <h5>Team  </h5>
-  <h5>Open Team:  </h5>
+  <h5>Team {{team_name}} </h5>
+  <h5>Open Team: {{is_open}} </h5>
   <h7>Open team means strangers can ask to join your team</h7>
-
-
     {{#each teammates}}
     <tr>
       <th scope="row">{{this.id}}</th>
@@ -46,14 +28,18 @@
       <td>{{this.phone_number}}</td>
       <td>{{this.university}}</td>
       <td>
+        {{!-- If team owner --}}
         {{#if (eq this.google_id ../owner_google_id)}}
           Team Owner
         {{else}}
+        {{!-- Not team owner, member that accepted invitation --}}
           {{#if (eq this.accepted_invitation 'ACCEPTED')}}
             Member - Accepted Invitation
           {{else}}
+          {{!-- Not team owner, member pending invitation --}}
             {{#if (eq this.accepted_invitation 'PENDING')}}
               Member - Pending Invitation 
+              {{!-- Not team owner, member that declined invitation --}}
             {{else}}
               Not Member - Declined Invitation
             {{/if}}
@@ -89,11 +75,41 @@
     {{/each}}
   </tbody>
 </table>
-  <h7>Max amount of members per team is 4</h7>
 
+{{#if is_owner}}
+<h5>You are the owner of this team. You may add up to 3 other members, for a total team size of 4.  </h5>
+<h5>Upon adding a team member, they must accept your team invitation. The status of members are showed above. A member will be shown as having accepted, declined, or pending the team invitation.</h5>
 <form action="/add_team_members" method="POST">
   <label for="add_team_members_email">Add Team Members (enter email)</label><br>
   <input type="input" id="add_team_members_email" name="add_team_members_email" placeholder="yourfriend@email.com">
 
   <input type="submit" value="Submit"><br>
 </form>
+<h7>Max amount of members per team is 4</h7>
+{{/if}}
+
+{{else}}
+  <h1>You are not in a team yet. You may create a team or join a team if the team owner invites you.</h1>
+  
+  <!-- Create Team Form -->
+  <div class="create-team-form-container" style="margin: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
+    <h3>Create Team Form</h3>
+    <form action="/create_team" method="POST">
+        <label for="team_name">Team Name</label><br>
+        <input type="input" id="team_name" name="team_name" placeholder="Team Paws" required><br>
+
+        <label for="is_open">Do You Want Your Team To Be Open? (strangers can join)</label>
+        <fieldset>
+            <legend></legend>
+            <label for="open_yes">Yes:</label>
+            <input type="radio" id="open_yes" name="is_open" value="true" required>
+            
+            <label for="open_no">No:</label>
+            <input type="radio" id="open_no" name="is_open" value="false" required>
+        </fieldset>
+
+        <input type="submit" value="Submit" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;"><br>
+    </form>
+  </div>
+{{/if}}
+
