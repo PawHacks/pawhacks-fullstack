@@ -76,6 +76,7 @@ exports.view_create_team = (req, res) => {
           team_name: team_name,
           is_open: is_open === 1,
           has_team: true,
+          google_id: google_id
         });
       });
     } else {
@@ -333,7 +334,7 @@ exports.decline_team_invitation = (req, res) => {
   });
 };
 
-// have to make it so team member cannot leave
+// fix clean code later
 exports.remove_team_member = (req, res) => {
   const member_google_id = req.params.google_id; // The Google ID of the member to remove
 

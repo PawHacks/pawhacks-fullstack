@@ -13,31 +13,34 @@
 
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/protected">PawHacks</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="/">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="/application">Application</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="/create_team">Create Team</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="/logout">Logout</a>
-          </li>
-        </ul>
-
-      </div>
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/protected">PawHacks</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/application">Application</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/create_team">Create Team</a>
+        </li>
+      </ul>
+      <!-- Right-aligned Logout link -->
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/logout">Logout</a>
+        </li>
+      </ul>
     </div>
-  </nav>
+  </div>
+</nav>
+
 
   <div class="container pt-5 pb-5">
       {{{body}}}

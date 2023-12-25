@@ -21,7 +21,7 @@ router.post(
   userController.decline_team_invitation
 );
 router.post(
-  "/remove_team_member/:google_id",
+  "/remove_team_member/:google_id/:team_id",
   userController.remove_team_member
 );
 // router.post('/change_team_owner', userController.leave_team)
