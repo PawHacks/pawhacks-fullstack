@@ -53,11 +53,15 @@ exports.view_create_team = (req, res) => {
         .send("Error retrieving team and owner information");
     }
 
-    console.log("teams", teams)
-    const accepted_teams = teams.filter(team => team.accepted_invitation === "ACCEPTED"); 
-    const pending_teams = teams.filter(team => team.accepted_invitation === "PENDING"); 
-    console.log("pending teams", pending_teams)
-    
+    console.log("teams", teams);
+    const accepted_teams = teams.filter(
+      (team) => team.accepted_invitation === "ACCEPTED"
+    );
+    const pending_teams = teams.filter(
+      (team) => team.accepted_invitation === "PENDING"
+    );
+    console.log("pending teams", pending_teams);
+
     // Check if the user is part of a team
     if (accepted_teams.length !== 0) {
       const team_id = accepted_teams[0].team_id; // Get the team ID
@@ -92,17 +96,17 @@ exports.view_create_team = (req, res) => {
           team_name: team_name,
           is_open: is_open === 1,
           has_team: true,
-          google_id: google_id, 
-          pending_teams: pending_teams, 
-          has_pending_team: pending_teams.length > 0
+          google_id: google_id,
+          pending_teams: pending_teams,
+          has_pending_team: pending_teams.length > 0,
         });
       });
     } else {
       res.render("create_team", {
         has_team: false,
         message: "You are not part of any team.",
-        pending_teams: pending_teams, 
-        has_pending_team: pending_teams.length > 0
+        pending_teams: pending_teams,
+        has_pending_team: pending_teams.length > 0,
       });
     }
   });
@@ -138,11 +142,15 @@ exports.view_team_invitations = (req, res) => {
         .send("Error retrieving team and owner information");
     }
 
-    console.log("teams", teams)
-    const accepted_teams = teams.filter(team => team.accepted_invitation === "ACCEPTED"); 
-    const pending_teams = teams.filter(team => team.accepted_invitation === "PENDING"); 
-    console.log("pending teams", pending_teams)
-    
+    console.log("teams", teams);
+    const accepted_teams = teams.filter(
+      (team) => team.accepted_invitation === "ACCEPTED"
+    );
+    const pending_teams = teams.filter(
+      (team) => team.accepted_invitation === "PENDING"
+    );
+    console.log("pending teams", pending_teams);
+
     // Check if the user is part of a team
     if (accepted_teams.length !== 0) {
       const team_id = accepted_teams[0].team_id; // Get the team ID
@@ -177,17 +185,17 @@ exports.view_team_invitations = (req, res) => {
           team_name: team_name,
           is_open: is_open === 1,
           has_team: true,
-          google_id: google_id, 
-          pending_teams: pending_teams, 
-          has_pending_team: pending_teams.length > 0
+          google_id: google_id,
+          pending_teams: pending_teams,
+          has_pending_team: pending_teams.length > 0,
         });
       });
     } else {
       res.render("team_invitations", {
         has_team: false,
         message: "You are not part of any team.",
-        pending_teams: pending_teams, 
-        has_pending_team: pending_teams.length > 0
+        pending_teams: pending_teams,
+        has_pending_team: pending_teams.length > 0,
       });
     }
   });
@@ -197,8 +205,8 @@ exports.view_team_by_team_id = (req, res) => {
   const google_id = req.user.google_id; // The logged-in user's Google ID
   const team_id = req.params.team_id;
 
-      // Get the specific information of all the teammates from the users table
-      const queryGetTeammates = `
+  // Get the specific information of all the teammates from the users table
+  const queryGetTeammates = `
         SELECT u.first_name, u.last_name, u.email, u.phone_number, u.university, u.google_id, tm.accepted_invitation, t.team_name, t.is_open, t.team_id
         FROM users u
         INNER JOIN team_members tm ON u.google_id = tm.member_google_id
@@ -206,23 +214,57 @@ exports.view_team_by_team_id = (req, res) => {
         WHERE tm.team_id = ?
       `;
 
-      connection.query(queryGetTeammates, [team_id], (err, result) => {
-        if (err) {
-          console.log(err);
-          return res
-            .status(500)
-            .send("Error retrieving team members information");
-        } 
-        // Send the teammates' information to the client, including a flag indicating if the user is the owner
-        res.render("view_team", {
-          teammates: result,
-          team_id: result[0].team_id,
-          team_name: result[0].team_id,
-          is_open: result[0].is_open === 1,
-          google_id: google_id, 
-        });
-      });
-    };
+  connection.query(queryGetTeammates, [team_id], (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send("Error retrieving team members information");
+    }
+    // Send the teammates' information to the client, including a flag indicating if the user is the owner
+    res.render("view_team", {
+      teammates: result,
+      team_id: result[0].team_id,
+      team_name: result[0].team_id,
+      is_open: result[0].is_open === 1,
+      google_id: google_id,
+    });
+  });
+};
+
+exports.view_open_teams = (req, res) => {
+  const google_id = req.user.google_id; // The logged-in user's Google ID
+
+  // Query to find the team and the owner's Google ID where the user is a member
+  const queryFindTeamAndOwner = `
+  SELECT 
+    t.team_id, 
+    t.team_name, 
+    t.created_by_google_id, 
+    t.is_open, 
+    tm.accepted_invitation,
+    owner.full_name AS owner_full_name,
+    owner.email AS owner_email
+  FROM 
+    team_members tm
+  INNER JOIN 
+    teams t ON tm.team_id = t.team_id
+  LEFT JOIN 
+    users owner ON t.created_by_google_id = owner.google_id
+  WHERE 
+    t.is_open = ?
+`;
+  connection.query(queryFindTeamAndOwner, [1], (err, teams) => {
+    if (err) {
+      console.log(err);
+      return res
+        .status(500)
+        .send("Error retrieving team and owner information");
+    }
+    // Send the teammates' information to the client, including a flag indicating if the user is the owner
+    res.render("open_teams", {
+      teams: teams
+    });
+  });
+};
 
 exports.submit_create_team = (req, res) => {
   const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.google_id

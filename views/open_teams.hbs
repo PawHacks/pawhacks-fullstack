@@ -1,0 +1,28 @@
+<h1>View Open Teams</h1>
+<table class="table table-bordered">
+  <thead class="thead-dark">
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Team Name</th>
+      <th scope="col">Team Owner</th>
+      <th scope="col">Owner's Email</th>
+      <th scope="col">Open Team</th>
+      <th scope="col">Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each teams}}
+    <tr>
+      <th scope="row">{{@index}}</th>
+      <td>{{this.team_name}}</td>
+      <td>{{this.owner_full_name}}</td>
+      <td>{{this.owner_email}}</td> <!-- Display the owner's email -->
+      <td>{{#if this.is_open}}Yes{{else}}No{{/if}}</td>
+      <td>
+        <!-- Place buttons or links for actions here -->
+        <button type="button" onclick="location.href='/view_team/{{this.team_id}}'" class="btn btn-primary btn-small">View</button>
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
