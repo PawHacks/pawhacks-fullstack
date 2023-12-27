@@ -28,13 +28,24 @@ exports.view_create_team = (req, res) => {
 
   // Query to find the team and the owner's Google ID where the user is a member
   const queryFindTeamAndOwner = `
-    SELECT t.team_id, t.team_name, t.created_by_google_id, t.is_open
-    FROM team_members tm
-    INNER JOIN teams t ON tm.team_id = t.team_id
-    WHERE tm.member_google_id = ?
-  `;
-
-  connection.query(queryFindTeamAndOwner, [google_id], (err, result) => {
+  SELECT 
+    t.team_id, 
+    t.team_name, 
+    t.created_by_google_id, 
+    t.is_open, 
+    tm.accepted_invitation,
+    owner.full_name AS owner_full_name,
+    owner.email AS owner_email
+  FROM 
+    team_members tm
+  INNER JOIN 
+    teams t ON tm.team_id = t.team_id
+  LEFT JOIN 
+    users owner ON t.created_by_google_id = owner.google_id
+  WHERE 
+    tm.member_google_id = ?
+`;
+  connection.query(queryFindTeamAndOwner, [google_id], (err, teams) => {
     if (err) {
       console.log(err);
       return res
@@ -42,19 +53,24 @@ exports.view_create_team = (req, res) => {
         .send("Error retrieving team and owner information");
     }
 
+    console.log("teams", teams)
+    const accepted_teams = teams.filter(team => team.accepted_invitation === "ACCEPTED"); 
+    const pending_teams = teams.filter(team => team.accepted_invitation === "PENDING"); 
+    console.log("pending teams", pending_teams)
+    
     // Check if the user is part of a team
-    if (result.length !== 0) {
-      const team_id = result[0].team_id; // Get the team ID
-      const team_name = result[0].team_name;
-      const owner_google_id = result[0].created_by_google_id; // Get the owner's Google ID
-      const is_open = result[0].is_open;
+    if (accepted_teams.length !== 0) {
+      const team_id = accepted_teams[0].team_id; // Get the team ID
+      const team_name = accepted_teams[0].team_name;
+      const owner_google_id = accepted_teams[0].created_by_google_id; // Get the owner's Google ID
+      const is_open = accepted_teams[0].is_open;
 
       // You now have the team ID and the owner's Google ID, and you can proceed
       // with your logic, for example, retrieving all team members' information.
 
       // Get the specific information of all the teammates from the users table
       const queryGetTeammates = `
-        SELECT u.first_name, u.last_name, u.email, u.phone_number, u.university, u.google_id, tm.accepted_invitation
+        SELECT u.first_name, u.last_name, u.email, u.phone_number, u.university, u.google_id, tm.accepted_invitation, tm.team_id
         FROM users u
         INNER JOIN team_members tm ON u.google_id = tm.member_google_id
         WHERE tm.team_id = ?
@@ -76,17 +92,137 @@ exports.view_create_team = (req, res) => {
           team_name: team_name,
           is_open: is_open === 1,
           has_team: true,
-          google_id: google_id
+          google_id: google_id, 
+          pending_teams: pending_teams, 
+          has_pending_team: pending_teams.length > 0
         });
       });
     } else {
       res.render("create_team", {
         has_team: false,
         message: "You are not part of any team.",
+        pending_teams: pending_teams, 
+        has_pending_team: pending_teams.length > 0
       });
     }
   });
 };
+
+exports.view_team_invitations = (req, res) => {
+  const google_id = req.user.google_id; // The logged-in user's Google ID
+
+  // Query to find the team and the owner's Google ID where the user is a member
+  const queryFindTeamAndOwner = `
+  SELECT 
+    t.team_id, 
+    t.team_name, 
+    t.created_by_google_id, 
+    t.is_open, 
+    tm.accepted_invitation,
+    owner.full_name AS owner_full_name,
+    owner.email AS owner_email
+  FROM 
+    team_members tm
+  INNER JOIN 
+    teams t ON tm.team_id = t.team_id
+  LEFT JOIN 
+    users owner ON t.created_by_google_id = owner.google_id
+  WHERE 
+    tm.member_google_id = ?
+`;
+  connection.query(queryFindTeamAndOwner, [google_id], (err, teams) => {
+    if (err) {
+      console.log(err);
+      return res
+        .status(500)
+        .send("Error retrieving team and owner information");
+    }
+
+    console.log("teams", teams)
+    const accepted_teams = teams.filter(team => team.accepted_invitation === "ACCEPTED"); 
+    const pending_teams = teams.filter(team => team.accepted_invitation === "PENDING"); 
+    console.log("pending teams", pending_teams)
+    
+    // Check if the user is part of a team
+    if (accepted_teams.length !== 0) {
+      const team_id = accepted_teams[0].team_id; // Get the team ID
+      const team_name = accepted_teams[0].team_name;
+      const owner_google_id = accepted_teams[0].created_by_google_id; // Get the owner's Google ID
+      const is_open = accepted_teams[0].is_open;
+
+      // You now have the team ID and the owner's Google ID, and you can proceed
+      // with your logic, for example, retrieving all team members' information.
+
+      // Get the specific information of all the teammates from the users table
+      const queryGetTeammates = `
+        SELECT u.first_name, u.last_name, u.email, u.phone_number, u.university, u.google_id, tm.accepted_invitation, tm.team_id
+        FROM users u
+        INNER JOIN team_members tm ON u.google_id = tm.member_google_id
+        WHERE tm.team_id = ?
+      `;
+
+      connection.query(queryGetTeammates, [team_id], (err, teammates) => {
+        if (err) {
+          console.log(err);
+          return res
+            .status(500)
+            .send("Error retrieving team members information");
+        }
+        // Send the teammates' information to the client, including a flag indicating if the user is the owner
+        res.render("team_invitations", {
+          teammates: teammates,
+          is_owner: google_id === owner_google_id,
+          owner_google_id: owner_google_id,
+          team_id: team_id,
+          team_name: team_name,
+          is_open: is_open === 1,
+          has_team: true,
+          google_id: google_id, 
+          pending_teams: pending_teams, 
+          has_pending_team: pending_teams.length > 0
+        });
+      });
+    } else {
+      res.render("team_invitations", {
+        has_team: false,
+        message: "You are not part of any team.",
+        pending_teams: pending_teams, 
+        has_pending_team: pending_teams.length > 0
+      });
+    }
+  });
+};
+
+exports.view_team_by_team_id = (req, res) => {
+  const google_id = req.user.google_id; // The logged-in user's Google ID
+  const team_id = req.params.team_id;
+
+      // Get the specific information of all the teammates from the users table
+      const queryGetTeammates = `
+        SELECT u.first_name, u.last_name, u.email, u.phone_number, u.university, u.google_id, tm.accepted_invitation, t.team_name, t.is_open, t.team_id
+        FROM users u
+        INNER JOIN team_members tm ON u.google_id = tm.member_google_id
+        INNER JOIN teams t on tm.team_id = t.team_id
+        WHERE tm.team_id = ?
+      `;
+
+      connection.query(queryGetTeammates, [team_id], (err, result) => {
+        if (err) {
+          console.log(err);
+          return res
+            .status(500)
+            .send("Error retrieving team members information");
+        } 
+        // Send the teammates' information to the client, including a flag indicating if the user is the owner
+        res.render("view_team", {
+          teammates: result,
+          team_id: result[0].team_id,
+          team_name: result[0].team_id,
+          is_open: result[0].is_open === 1,
+          google_id: google_id, 
+        });
+      });
+    };
 
 exports.submit_create_team = (req, res) => {
   const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.google_id
