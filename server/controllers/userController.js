@@ -53,7 +53,6 @@ exports.view_create_team = (req, res) => {
         .send("Error retrieving team and owner information");
     }
 
-    console.log("teams", teams);
     const accepted_teams = teams.filter(
       (team) => team.accepted_invitation === "ACCEPTED"
     );
@@ -142,62 +141,15 @@ exports.view_team_invitations = (req, res) => {
         .send("Error retrieving team and owner information");
     }
 
-    console.log("teams", teams);
-    const accepted_teams = teams.filter(
-      (team) => team.accepted_invitation === "ACCEPTED"
-    );
     const pending_teams = teams.filter(
       (team) => team.accepted_invitation === "PENDING"
     );
-    console.log("pending teams", pending_teams);
-
-    // Check if the user is part of a team
-    if (accepted_teams.length !== 0) {
-      const team_id = accepted_teams[0].team_id; // Get the team ID
-      const team_name = accepted_teams[0].team_name;
-      const owner_google_id = accepted_teams[0].created_by_google_id; // Get the owner's Google ID
-      const is_open = accepted_teams[0].is_open;
-
-      // You now have the team ID and the owner's Google ID, and you can proceed
-      // with your logic, for example, retrieving all team members' information.
-
-      // Get the specific information of all the teammates from the users table
-      const queryGetTeammates = `
-        SELECT u.first_name, u.last_name, u.email, u.phone_number, u.university, u.google_id, tm.accepted_invitation, tm.team_id
-        FROM users u
-        INNER JOIN team_members tm ON u.google_id = tm.member_google_id
-        WHERE tm.team_id = ?
-      `;
-
-      connection.query(queryGetTeammates, [team_id], (err, teammates) => {
-        if (err) {
-          console.log(err);
-          return res
-            .status(500)
-            .send("Error retrieving team members information");
-        }
-        // Send the teammates' information to the client, including a flag indicating if the user is the owner
-        res.render("team_invitations", {
-          teammates: teammates,
-          is_owner: google_id === owner_google_id,
-          owner_google_id: owner_google_id,
-          team_id: team_id,
-          team_name: team_name,
-          is_open: is_open === 1,
-          has_team: true,
-          google_id: google_id,
-          pending_teams: pending_teams,
-          has_pending_team: pending_teams.length > 0,
-        });
-      });
-    } else {
-      res.render("team_invitations", {
-        has_team: false,
-        message: "You are not part of any team.",
-        pending_teams: pending_teams,
-        has_pending_team: pending_teams.length > 0,
-      });
-    }
+    // Send the teammates' information to the client, including a flag indicating if the user is the owner
+    res.render("team_invitations", {
+      google_id: google_id,
+      pending_teams: pending_teams,
+      has_pending_team: pending_teams.length > 0,
+    });
   });
 };
 
@@ -207,7 +159,7 @@ exports.view_team_by_team_id = (req, res) => {
 
   // Get the specific information of all the teammates from the users table
   const queryGetTeammates = `
-        SELECT u.first_name, u.last_name, u.email, u.phone_number, u.university, u.google_id, tm.accepted_invitation, t.team_name, t.is_open, t.team_id
+        SELECT u.first_name, u.last_name, u.email, u.phone_number, u.university, u.google_id, tm.accepted_invitation, t.team_name, t.is_open, t.team_id, t.created_by_google_id
         FROM users u
         INNER JOIN team_members tm ON u.google_id = tm.member_google_id
         INNER JOIN teams t on tm.team_id = t.team_id
@@ -251,6 +203,8 @@ exports.view_open_teams = (req, res) => {
     users owner ON t.created_by_google_id = owner.google_id
   WHERE 
     t.is_open = ?
+  GROUP BY 
+    t.team_id
 `;
   connection.query(queryFindTeamAndOwner, [1], (err, teams) => {
     if (err) {
@@ -261,7 +215,7 @@ exports.view_open_teams = (req, res) => {
     }
     // Send the teammates' information to the client, including a flag indicating if the user is the owner
     res.render("open_teams", {
-      teams: teams
+      teams: teams,
     });
   });
 };
@@ -450,18 +404,56 @@ exports.submit_application = (req, res) => {
 exports.accept_team_invitation = (req, res) => {
   const google_id = req.user.google_id;
   const team_id = req.params.team_id;
-  const query = ` 
-  UPDATE team_members
-  SET accepted_invitation = ? 
-  WHERE member_google_id = ?
-  AND team_id = ?
-  `;
-  connection.query(query, ["ACCEPTED", google_id, team_id], (err, result) => {
-    if (!err) {
-      res.redirect("/create_team");
-    } else {
+
+  // Query to check if the user already belongs to a team
+  const queryCheckTeam = `SELECT * FROM team_members WHERE member_google_id = ? AND accepted_invitation = 'ACCEPTED'`;
+  connection.query(queryCheckTeam, [google_id], (err, teams) => {
+    if (err) {
       console.log(err);
-      res.send("update did not work");
+      return res.status(500).send("Error checking for existing team");
+    }
+
+    if (teams.length > 0) {
+      // User already has a team, so don't allow joining a new one
+      return res
+        .status(409)
+        .send("You already have a team and cannot join another one");
+    } else {
+      // Query to count the number of accepted members in the team
+      const queryCountMembers = `SELECT COUNT(*) AS memberCount FROM team_members WHERE team_id = ? AND accepted_invitation = 'ACCEPTED'`;
+      connection.query(queryCountMembers, [team_id], (err, results) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).send("Error counting team members");
+        }
+
+        if (results[0].memberCount >= 4) {
+          // Team is already at maximum capacity
+          return res
+            .status(409)
+            .send("The team already has the maximum number of members");
+        } else {
+          // Proceed to update the member's status to 'ACCEPTED'
+          const queryUpdateMember = `
+          UPDATE team_members
+          SET accepted_invitation = 'ACCEPTED' 
+          WHERE member_google_id = ?
+          AND team_id = ?
+          `;
+          connection.query(
+            queryUpdateMember,
+            [google_id, team_id],
+            (err, result) => {
+              if (!err) {
+                res.redirect("/create_team");
+              } else {
+                console.log(err);
+                res.send("Update did not work");
+              }
+            }
+          );
+        }
+      });
     }
   });
 };

@@ -26,7 +26,7 @@
       <td>{{this.university}}</td>
       <td>
         {{!-- If team owner --}}
-        {{#if (eq this.google_id ../owner_google_id)}}
+        {{#if (eq this.google_id this.created_by_google_id)}}
           Team Owner
         {{else}}
         {{!-- Not team owner, member that accepted invitation --}}
