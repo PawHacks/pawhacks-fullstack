@@ -519,10 +519,46 @@ exports.remove_team_member = (req, res) => {
 
       const owner_google_id = result[0].created_by_google_id;
 
-      // If the member is not the owner, proceed to remove
-      if (member_google_id !== owner_google_id) {
+      // If the member is the owner, proceed to delete the team
+      if (member_google_id === owner_google_id) {
+        const queryCountMembers = `SELECT COUNT(*) AS memberCount FROM team_members WHERE team_id = ?`;
+        connection.query(queryCountMembers, [teamID], (err, results) => {
+          if (err) {
+            console.log(err);
+            return res.status(500).send("Error counting team members");
+          }
+
+          // If it's only the owner in the team, delete the team and team members
+          if (results[0].memberCount <= 1) {
+            const queryRemoveTeamMembers = `DELETE FROM team_members WHERE team_id = ?`;
+            connection.query(queryRemoveTeamMembers, [teamID], (err) => {
+              if (err) {
+                console.log(err);
+                return res.status(500).send("Error removing team members");
+              }
+
+              const queryRemoveTeam = `DELETE FROM teams WHERE team_id = ?`;
+              connection.query(queryRemoveTeam, [teamID], (err) => {
+                if (err) {
+                  console.log(err);
+                  return res.status(500).send("Error removing team");
+                }
+
+                res.redirect("/create_team")
+              });
+            });
+          } else {
+            return res
+              .status(409)
+              .send(
+                "To delete the team, please remove all other members first."
+              );
+          }
+        });
+      } else {
+        // If the member is not the owner, proceed to remove the member
         const queryRemoveMember = `
-          DELETE from team_members 
+          DELETE FROM team_members 
           WHERE member_google_id = ? AND team_id = ?
         `;
 
@@ -539,11 +575,9 @@ exports.remove_team_member = (req, res) => {
               return res.status(404).send("No team member removed");
             }
 
-            res.redirect("/create_team");
+            res.redirect("/create_team")
           }
         );
-      } else {
-        res.status(403).send("Cannot remove the team owner");
       }
     });
   });

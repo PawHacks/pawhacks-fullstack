@@ -54,7 +54,14 @@
                 <i class="bi bi-check-lg"></i> Remove
             </button>
         </form>
+        {{else}}
+        <form action="/remove_team_member/{{this.google_id}}/{{../team_id}}" method="POST">
+            <button type="submit" class="btn btn-light btn-small">
+                <i class="bi bi-check-lg"></i> Delete Team
+            </button>
+        </form>
       {{/unless}}
+      
       {{else}}
         {{#if (eq this.accepted_invitation 'PENDING')}}
         <form action="/accept_team_invitation/{{this.google_id}}/{{../team_id}}" method="POST">
