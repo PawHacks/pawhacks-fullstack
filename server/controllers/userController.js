@@ -544,7 +544,7 @@ exports.remove_team_member = (req, res) => {
                   return res.status(500).send("Error removing team");
                 }
 
-                res.redirect("/create_team")
+                res.redirect("/create_team");
               });
             });
           } else {
@@ -575,7 +575,7 @@ exports.remove_team_member = (req, res) => {
               return res.status(404).send("No team member removed");
             }
 
-            res.redirect("/create_team")
+            res.redirect("/create_team");
           }
         );
       }

@@ -47,7 +47,7 @@
       {{#if ../is_owner}} <!-- Check if the logged-in user is the team owner -->
       {{#unless (eq this.google_id ../owner_google_id)}} <!-- Check if the current google_id is not the owner's -->
         <form action="/remove_team_member/{{this.google_id}}/{{../team_id}}" method="POST">
-            <button type="submit" class="btn btn-light btn-small">
+            <button type="submit" class="btn btn-danger btn-small">
                 <i class="bi bi-check-lg"></i> Remove
             </button>
         </form>
@@ -55,12 +55,12 @@
       {{else}}
         {{#if (eq this.accepted_invitation 'PENDING')}}
         <form action="/accept_team_invitation/{{this.google_id}}/{{../team_id}}" method="POST">
-            <button type="submit" class="btn btn-light btn-small">
+            <button type="submit" class="btn btn-danger btn-small">
                 <i class="bi bi-check-lg"></i> Join Team
             </button>
         </form>
         <form action="/decline_team_invitation/{{this.google_id}}/{{../team_id}}" method="POST">
-            <button type="submit" class="btn btn-light btn-small">
+            <button type="submit" class="btn btn-danger btn-small">
                 <i class="bi bi-person-x"></i> Decline Team Invitation
             </button>
         </form>
@@ -68,7 +68,7 @@
       {{#if (eq this.accepted_invitation 'ACCEPTED')}}
       {{#if (eq this.google_id ../google_id)}}
         <form action="/remove_team_member/{{this.google_id}}/{{../team_id}}" method="POST">
-            <button type="submit" class="btn btn-light btn-small">
+            <button type="submit" class="btn btn-danger btn-small">
                 <i class="bi bi-check-lg"></i> Leave Team
             </button>
         </form>

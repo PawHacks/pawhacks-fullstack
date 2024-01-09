@@ -27,14 +27,5 @@ router.post(
   "/remove_team_member/:google_id/:team_id",
   userController.remove_team_member
 );
-// router.post('/leave_team', userController.leave_team)
-
-// router.post('/', userController.find);
-// router.get('/adduser', userController.form);
-// router.post('/adduser', userController.create);
-// router.get('/edituser/:id', userController.edit);
-// router.post('/edituser/:id', userController.update);
-// router.get('/viewuser/:id', userController.viewall);
-// router.get('/:id',userController.delete);
 
 module.exports = router;
