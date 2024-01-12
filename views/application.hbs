@@ -26,27 +26,31 @@
             class="form-control"
           /><br />
         </div>
-
-        <div class="form-group">
-          <label for="phone_number">Phone Number</label><br />
-          <input
-            type="tel"
-            id="phone_number"
-            name="phone_number"
-            placeholder="123-456-7890"
-            class="form-control"
-          /><br />
-        </div>
         
-        <div class="form-group">
-          <label for="birthdate">Date of Birth (You must be 18 or older to participate)</label><br />
+        <div class="form-check form-check-inline">
+          <label for="over_18">Do You Have a College Issued ID?</label><br />
+          <fieldset>
+            <legend></legend>
+            <label for="over_18">Yes:</label>
+            <input
+              type="radio"
+              id="over_18"
+              name="over_18"
+              value="true"
+              required
+            />
+        </div>
+
+        <div class="form-check form-check-inline">
+          <label for="over_18">No:</label>
           <input
-            type="date"
-            id="birthdate"
-            name="birthdate"
-            placeholder="04-17-2005"
-            class="form-control"
-          /><br />
+            type="radio"
+            id="over_18"
+            name="over_18"
+            value="false"
+            required
+          />
+        </fieldset>
         </div>
 
         <div class="form-check form-check-inline">
