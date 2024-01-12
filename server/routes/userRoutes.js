@@ -8,6 +8,7 @@ router.post("/", userController.post_home);
 router.get("/login", userController.view_login);
 // router.post('/register', userController.post_register);
 router.get("/application", userController.view_application);
+router.post("/send_email", userController.send_email);
 router.post("/application", userController.submit_application);
 router.get("/create_team", userController.view_create_team);
 router.post("/create_team", userController.submit_create_team);
