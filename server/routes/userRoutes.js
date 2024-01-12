@@ -6,6 +6,7 @@ const userController = require("../controllers/userController");
 router.get("/", userController.get_home);
 router.post("/", userController.post_home);
 router.get("/login", userController.view_login);
+router.post("/send_email", userController.send_email)
 // router.post('/register', userController.post_register);
 router.get("/application", userController.view_application);
 router.post("/application", userController.submit_application);

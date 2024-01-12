@@ -26,24 +26,27 @@ exports.view_login = (req, res) => {
 exports.send_email = (req, res) => {
   const { email } = req.body;
   if (email) {
-    // Prepare the query
     let query = `INSERT INTO emails (email) VALUES (?)`;
-
-    // Execute the query
     connection.query(query, [email], (err, result) => {
       if (err) {
-        // Handle any errors
         console.error("Error inserting email into database: ", err);
-        res.status(500).send("Error inserting email into database");
+        // Sending a client-side script for the alert
+        res.send(
+          `<script>alert("Error inserting email into database"); window.location.href = "/";</script>`
+        );
       } else {
-        // Handle success
         console.log("Email inserted successfully");
-        res.send("Email inserted successfully");
+        // Sending a client-side script for the alert
+        res.send(
+          `<script>alert("Email inserted successfully"); window.location.href = "/";</script>`
+        );
       }
     });
   } else {
-    // Email was not provided in the request body
-    res.status(400).send("No email provided");
+    // Sending a client-side script for the alert
+    res.send(
+      `<script>alert("No email provided"); window.location.href = "/";</script>`
+    );
   }
 };
 
