@@ -26,13 +26,17 @@ CREATE TABLE users (
   google_id VARCHAR(21) NOT NULL,
   first_name VARCHAR(255) NOT NULL,
   last_name VARCHAR(255) NOT NULL,
-  full_name VARCHAR(128) NOT NULL,
+  full_name VARCHAR(255) NOT NULL, -- Changed from VARCHAR(128) to VARCHAR(255)
   email VARCHAR(255) NOT NULL,
   university VARCHAR(255),
   over_18 TINYINT(1),
   have_id TINYINT(1),
   hackathon_experience VARCHAR(500),
+  gender ENUM('male', 'female', 'other') NOT NULL,
+  race ENUM('american_indian', 'asian', 'black', 'pacific_islander', 'white', 'other') NOT NULL,
+  shirt_size ENUM('S', 'M', 'L', 'XL') NOT NULL,
   PRIMARY KEY (user_id),
-  UNIQUE KEY (email),
-  UNIQUE KEY (google_id)
+  UNIQUE KEY unique_email (email), -- Named constraint for uniqueness
+  UNIQUE KEY unique_google_id (google_id) -- Named constraint for uniqueness
 );
+
