@@ -43,7 +43,7 @@ Handlebars.registerHelper('eq', function(arg1, arg2) {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://pawhacks.io/auth/google/callback" //redirects to this url after authentication
+    callbackURL: "https://pawhacks.io/auth/google/callback" //redirects to this url after authentication
 }, function(accessToken, refreshToken, profile, done) {
     console.log(profile)
     const googleId = profile.id; //get google id
