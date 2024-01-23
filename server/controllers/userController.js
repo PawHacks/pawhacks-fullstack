@@ -1,5 +1,6 @@
 const mysql = require("mysql");
 const path = require("path");
+const fs = require('fs');
 
 // Connection Pool
 let connection = mysql.createConnection({
@@ -21,6 +22,20 @@ exports.post_home = (req, res) => {
 
 exports.view_login = (req, res) => {
   res.render("login");
+};
+
+exports.privacy_policy = (req, res) => {
+  // Assuming privacy_policy.pdf is at the root of the project
+  const absolutePath = path.resolve(__dirname, "../../privacy_policy.pdf");
+  // Check if the file exists before attempting to send it
+  fs.access(absolutePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      console.error("Cannot find privacy_policy.pdf:", err);
+      res.status(404).send("Privacy policy not found");
+    } else {
+      res.sendFile(absolutePath);
+    }
+  });
 };
 
 exports.send_email = (req, res) => {

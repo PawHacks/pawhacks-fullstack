@@ -35,6 +35,7 @@ CREATE TABLE users (
   gender ENUM('male', 'female', 'other') NOT NULL,
   race ENUM('american_indian', 'asian', 'black', 'pacific_islander', 'white', 'other') NOT NULL,
   shirt_size ENUM('S', 'M', 'L', 'XL') NOT NULL,
+  phone_number VARCHAR(15), -- New column for phone number
   PRIMARY KEY (user_id),
   UNIQUE KEY unique_email (email), -- Named constraint for uniqueness
   UNIQUE KEY unique_google_id (google_id) -- Named constraint for uniqueness
