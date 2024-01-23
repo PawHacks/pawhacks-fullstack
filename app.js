@@ -12,12 +12,13 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // Connection Pool
-const connection = mysql.createPool({
-    connectionLimit: 10, // Limit for number of connections
+const connection = mysql.createConnection({
+    // connectionLimit: 10, // Limit for number of connections
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
-    database: process.env.DB_NAME
+    database: process.env.DB_NAME, 
+    authPlugins: ['mysql_native_password']
 });
 
 app.use(session({
