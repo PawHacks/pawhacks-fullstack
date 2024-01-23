@@ -19,7 +19,7 @@ exports.googleCallback = (req, res, next) => {
         req.login(user, function(err) {
             if (err) { return next(err); }
             const google_id = req.user.google_id; 
-            let query = `SELECT * FROM USERS WHERE google_id = ?`; 
+            let query = `SELECT * FROM users WHERE google_id = ?`; 
 
             connection.query(query, [google_id], (err, result) => { 
                 if (err) {
