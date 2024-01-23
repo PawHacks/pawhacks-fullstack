@@ -26,8 +26,7 @@ exports.googleCallback = (req, res, next) => {
             `; 
 
             connection.query(query, [google_id], (err, result) => { 
-                const user = result ? result : null;
-                console.log("result")
+                const user = result
                 if(Object.values(user).some(value => value === null || value === undefined)) { 
                     return res.redirect('/application')
                 } else { 
