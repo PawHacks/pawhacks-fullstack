@@ -14,7 +14,7 @@
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
-    <a class="navbar-brand" href="/protected">PawHacks</a>
+    <a class="navbar-brand" href="/">PawHacks</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
       aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -24,6 +24,7 @@
         <li class="nav-item">
           <a class="nav-link active" aria-current="page" href="/">Home</a>
         </li>
+        {{#unless NotUserAuthenticated}}
         <li class="nav-item">
           <a class="nav-link active" aria-current="page" href="/application">Application</a>
         </li>
@@ -43,6 +44,7 @@
           <a class="nav-link active" aria-current="page" href="/logout">Logout</a>
         </li>
       </ul>
+      {{/unless}}
     </div>
   </div>
 </nav>
@@ -50,7 +52,7 @@
 
   <div class="container pt-5 pb-5 px-4">
       {{{body}}}
-        <p>If you have questions, contact us at pawhacks@northeastern.edu! If there are issues with the website and filling out forms, kindly contact me at pan.wi@northeastern.edu!</p>
+        <p>If you have questions, contact us at pawhacks@northeastern.edu!</p>
   </div>
 
 

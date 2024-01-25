@@ -1,6 +1,6 @@
 const mysql = require("mysql");
 const path = require("path");
-const fs = require('fs');
+const fs = require("fs");
 
 // Connection Pool
 let connection = mysql.createConnection({
@@ -21,7 +21,7 @@ exports.post_home = (req, res) => {
 };
 
 exports.view_login = (req, res) => {
-  res.render("login");
+  res.render("login", { NotUserAuthenticated: true });
 };
 
 exports.privacy_policy = (req, res) => {
@@ -44,11 +44,10 @@ exports.send_email = (req, res) => {
     let query = `INSERT INTO emails (email) VALUES (?)`;
     connection.query(query, [email], (err, result) => {
       if (err) {
-        console.error("Error inserting email into database: ", err);
         // Sending a client-side script for the alert
         res.send(
           `<script>alert("Error inserting email into database"); window.location.href = "/";</script>`
-        );
+        )
       } else {
         console.log("Email inserted successfully");
         // Sending a client-side script for the alert
@@ -89,10 +88,7 @@ exports.view_create_team = (req, res) => {
   `;
   connection.query(queryFindTeamAndOwner, [google_id], (err, teams) => {
     if (err) {
-      console.log(err);
-      return res
-        .status(500)
-        .send("Error retrieving team and owner information");
+      res.send(`<script>alert("Error retrieving team and owner information"); window.history.back();</script>`);
     }
 
     const accepted_teams = teams.filter(
@@ -123,10 +119,11 @@ exports.view_create_team = (req, res) => {
 
       connection.query(queryGetTeammates, [team_id], (err, teammates) => {
         if (err) {
-          console.log(err);
-          return res
-            .status(500)
-            .send("Error retrieving team members information");
+          ;res.send(`<script>alert("Error retrieving team members information"); window.history.back();</script>`);
+          // console.log(err);
+          // return res
+          //   .status(500)
+          //   .send("Error retrieving team members information");
         }
         // Send the teammates' information to the client, including a flag indicating if the user is the owner
         res.render("create_team", {
@@ -177,10 +174,11 @@ exports.view_team_invitations = (req, res) => {
   `;
   connection.query(queryFindTeamAndOwner, [google_id], (err, teams) => {
     if (err) {
-      console.log(err);
-      return res
-        .status(500)
-        .send("Error retrieving team and owner information");
+      res.send(`<script>alert("Error retreiving team and owner information"); window.history.back();</script>`);
+      // console.log(err);
+      // return res
+      //   .status(500)
+      //   .send("Error retrieving team and owner information");
     }
 
     const pending_teams = teams.filter(
@@ -210,8 +208,9 @@ exports.view_team_by_team_id = (req, res) => {
 
   connection.query(queryGetTeammates, [team_id], (err, result) => {
     if (err) {
-      console.log(err);
-      return res.status(500).send("Error retrieving team members information");
+      
+      // console.log(err);
+      // return res.status(500).send("Error retrieving team members information");
     }
     // Send the teammates' information to the client, including a flag indicating if the user is the owner
     res.render("view_team", {
@@ -250,10 +249,7 @@ exports.view_open_teams = (req, res) => {
   `;
   connection.query(queryFindTeamAndOwner, [1], (err, teams) => {
     if (err) {
-      console.log(err);
-      return res
-        .status(500)
-        .send("Error retrieving team and owner information");
+      res.send(`<script>alert("Error retreiving team and owner information"); window.history.back();</script>`);
     }
     // Send the teammates' information to the client, including a flag indicating if the user is the owner
     res.render("open_teams", {
@@ -272,21 +268,18 @@ exports.submit_create_team = (req, res) => {
   connection.query(queryCheckTeam, [google_id, "ACCEPTED"], (err, teams) => {
     if (err) {
       console.log(err);
-      return res.status(500).send("Error checking for existing team");
+      res.send(`<script>alert("Error checking for existing team"); window.history.back();</script>`);
     }
 
     if (teams.length > 0) {
       // User already has a team, so don't allow creating a new one
-      return res
-        .status(409)
-        .send("You already have a team and cannot create another one");
+      res.send(`<script>alert("You have a team and cannot create another one"); window.history.back();</script>`);
     }
 
     // No existing team found for the user, proceed with team creation
     connection.beginTransaction((err) => {
       if (err) {
-        console.log(err);
-        return res.status(500).send("Error starting transaction");
+        res.send(`<script>alert("Error starting transaction"); window.history.back();</script>`);
       }
 
       // Insert the new team into the teams table
@@ -302,7 +295,8 @@ exports.submit_create_team = (req, res) => {
             console.log(err);
             // Rollback the transaction in case of error
             connection.rollback(() => {
-              res.status(500).send("Error inserting team");
+              res.send(`<script>alert("Error inserting team"); window.history.back();</script>`);
+              // res.status(500).send("Error inserting team");
             });
             return;
           }
@@ -323,9 +317,10 @@ exports.submit_create_team = (req, res) => {
                 console.log(err);
                 // Rollback the transaction in case of error
                 connection.rollback(() => {
-                  res
-                    .status(500)
-                    .send("Error adding team owner to team members");
+                  res.send(`<script>alert("Error adding team owner to team members"); window.history.back();</script>`);
+                  // res
+                  //   .status(500)
+                  //   .send("Error adding team owner to team members");
                 });
                 return;
               }
@@ -335,7 +330,8 @@ exports.submit_create_team = (req, res) => {
                 if (err) {
                   console.log(err);
                   connection.rollback(() => {
-                    res.status(500).send("Error during transaction commit");
+                    res.send(`<script>alert("Error during transaction commit"); window.history.back();</script>`);
+                    // res.status(500).send("Error during transaction commit");
                   });
                   return;
                 }
@@ -369,11 +365,11 @@ exports.add_team_members = (req, res) => {
           res.redirect("/create_team");
         } else {
           console.log(result);
-          res.status(404).send("Team or user not found");
+          res.send(`<script>alert("Team or user not found. Your teammate has not registered for this hackathon using this email. Enter a new email, or ask your teammate to register first before inviting them."); window.history.back();</script>`);
         }
       } else {
         console.log(err);
-        res.status(500).send("An error occurred while adding the team member");
+        res.send(`<script>alert("An error occurred while adding the team member."); window.history.back();</script>`);
       }
     }
   );
@@ -425,18 +421,19 @@ exports.submit_application = (req, res) => {
       (err, result) => {
         if (err) {
           // Handle the error, maybe log it and send a response to the client
-          console.error("Error updating user data: ", err);
-          res.status(500).send("Error updating your information");
+          res.send(`<script>alert("Error updating your information"); window.history.back();</script>`);
+          // console.error("Error updating user data: ", err);
+          // res.status(500).send("Error updating your information");
         } else {
           // Handle a successful update, maybe send a success message to the client
-          console.log("User data updated successfully");
+          // console.log("User data updated successfully");
           res.redirect("/create_team");
         }
       }
     );
   } else {
     // User is not authenticated
-    res.status(401).send("You need to log in to submit this form");
+    res.send(`<script>alert("You need to be logged in to submit this form"); window.history.back();</script>`);
   }
 };
 
@@ -449,28 +446,32 @@ exports.accept_team_invitation = (req, res) => {
   connection.query(queryCheckTeam, [google_id], (err, teams) => {
     if (err) {
       console.log(err);
-      return res.status(500).send("Error checking for existing team");
+      res.send(`<script>alert("Error checking for existing team"); window.history.back();</script>`);
+      // return res.status(500).send("Error checking for existing team");
     }
 
     if (teams.length > 0) {
       // User already has a team, so don't allow joining a new one
-      return res
-        .status(409)
-        .send("You already have a team and cannot join another one");
+      res.send(`<script>alert("You already have a team and cannot join another one"); window.history.back();</script>`);
+      // return res
+      //   .status(409)
+      //   .send("You already have a team and cannot join another one");
     } else {
       // Query to count the number of accepted members in the team
       const queryCountMembers = `SELECT COUNT(*) AS memberCount FROM team_members WHERE team_id = ? AND accepted_invitation = 'ACCEPTED'`;
       connection.query(queryCountMembers, [team_id], (err, results) => {
         if (err) {
-          console.log(err);
-          return res.status(500).send("Error counting team members");
+          res.send(`<script>alert("Error counting team members"); window.history.back();</script>`);
+          // console.log(err);
+          // return res.status(500).send("Error counting team members");
         }
 
         if (results[0].memberCount >= 4) {
           // Team is already at maximum capacity
-          return res
-            .status(409)
-            .send("The team already has the maximum number of members");
+          res.send(`<script>alert("Team is already at maximum number of members. You can only have up to 4 accepted team members in one team."); window.history.back();</script>`);
+          // return res
+          //   .status(409)
+          //   .send("The team already has the maximum number of members");
         } else {
           // Proceed to update the member's status to 'ACCEPTED'
           const queryUpdateMember = `
@@ -486,8 +487,9 @@ exports.accept_team_invitation = (req, res) => {
               if (!err) {
                 res.redirect("/create_team");
               } else {
-                console.log(err);
-                res.send("Update did not work");
+                // console.log(err);
+                // res.send("Update did not work");
+                res.send(`<script>alert("Update did not work"); window.history.back();</script>`);
               }
             }
           );
@@ -510,8 +512,9 @@ exports.decline_team_invitation = (req, res) => {
     if (!err) {
       res.redirect("/create_team");
     } else {
-      console.log(err);
-      res.send("update did not work");
+      // console.log(err);
+      // res.send("update did not work");
+      res.send(`<script>alert("Update did not work"); window.history.back();</script>`);
     }
   });
 };
@@ -529,12 +532,14 @@ exports.remove_team_member = (req, res) => {
 
   connection.query(queryFindTeamAndOwner, [member_google_id], (err, result) => {
     if (err) {
-      console.log(err);
-      return res.status(500).send("Error finding team member");
+      res.send(`<script>alert("Error finding team member"); window.history.back();</script>`);
+      // console.log(err);
+      // return res.status(500).send("Error finding team member");
     }
 
     if (result.length === 0) {
-      return res.status(404).send("Team member not found");
+      res.send(`<script>alert("Team member not found"); window.history.back();</script>`);
+      // return res.status(404).send("Team member not found");
     }
 
     const teamID = result[0].team_id;
@@ -549,11 +554,13 @@ exports.remove_team_member = (req, res) => {
     connection.query(queryCheckOwner, [teamID], (err, result) => {
       if (err) {
         console.log(err);
-        return res.status(500).send("Error checking team owner");
+        // return res.status(500).send("Error checking team owner");
+        res.send(`<script>alert("Error checking team owner"); window.history.back();</script>`);
       }
 
       if (result.length === 0) {
-        return res.status(404).send("Team not found");
+        // return res.status(404).send("Team not found");
+        res.send(`<script>alert("Team owner not found"); window.history.back();</script>`);
       }
 
       const owner_google_id = result[0].created_by_google_id;
@@ -563,8 +570,8 @@ exports.remove_team_member = (req, res) => {
         const queryCountMembers = `SELECT COUNT(*) AS memberCount FROM team_members WHERE team_id = ?`;
         connection.query(queryCountMembers, [teamID], (err, results) => {
           if (err) {
-            console.log(err);
-            return res.status(500).send("Error counting team members");
+            // console.log(err);
+            res.send(`<script>alert("Error checking team owner"); window.history.back();</script>`);
           }
 
           // If it's only the owner in the team, delete the team and team members
@@ -572,26 +579,24 @@ exports.remove_team_member = (req, res) => {
             const queryRemoveTeamMembers = `DELETE FROM team_members WHERE team_id = ?`;
             connection.query(queryRemoveTeamMembers, [teamID], (err) => {
               if (err) {
-                console.log(err);
-                return res.status(500).send("Error removing team members");
+                // console.log(err);
+                // return res.status(500).send("Error removing team members");
+                res.send(`<script>alert("Error removing team members"); window.history.back();</script>`);
               }
 
               const queryRemoveTeam = `DELETE FROM teams WHERE team_id = ?`;
               connection.query(queryRemoveTeam, [teamID], (err) => {
                 if (err) {
                   console.log(err);
-                  return res.status(500).send("Error removing team");
+                  // return res.status(500).send("Error removing team");
+                  res.send(`<script>alert("Error removing team"); window.history.back();</script>`);
                 }
 
                 res.redirect("/create_team");
               });
             });
           } else {
-            return res
-              .status(409)
-              .send(
-                "To delete the team, please remove all other members first."
-              );
+            res.send(`<script>alert("To delete the team as a tema owner, you must remove all other team members first."); window.history.back();</script>`);;
           }
         });
       } else {
@@ -606,12 +611,14 @@ exports.remove_team_member = (req, res) => {
           [member_google_id, teamID],
           (err, result) => {
             if (err) {
-              console.log(err);
-              return res.status(500).send("Error removing team member");
+              res.send(`<script>alert("Error removing team member"); window.history.back();</script>`);
+              // console.log(err);
+              // return res.status(500).send("Error removing team member");
             }
 
             if (result.affectedRows === 0) {
-              return res.status(404).send("No team member removed");
+              res.send(`<script>alert("No team member removed"); window.history.back();</script>`);
+              // return res.status(404).send("No team member removed");
             }
 
             res.redirect("/create_team");

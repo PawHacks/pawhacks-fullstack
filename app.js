@@ -25,7 +25,8 @@ app.use(session({
     secret: process.env.SECRET_SESSION, 
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge: 3600000 } //cookie resets after 1 hour
+    rolling: true, 
+    cookie: { maxAge: 24 * 60 * 60 * 1000 } //cookie resets after 1 hour
 }));
 
 app.use(passport.initialize()); 
@@ -45,13 +46,14 @@ Handlebars.registerHelper('eq', function(arg1, arg2) {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "https://pawhacks.io/auth/google/callback" //redirects to this url after authentication
+    callbackURL: "http://localhost:5000/auth/google/callback" //redirects to this url after authentication
+    // callbackURL: "https://pawhacks.io/auth/google/callback" //redirects to this url after authentication
 }, function(accessToken, refreshToken, profile, done) {
     console.log(profile)
     const googleId = profile.id; //get google id
     const email = profile.emails[0].value; // get email
     const firstName = profile.name.givenName;
-    const lastName = profile.name.familyName;
+    const lastName = profile.name.familyName ? profile.name.familyName : "";
     const fullName = profile.displayName;
 
     connection.query('SELECT * FROM users WHERE email = ?', [email], function(err, users) {
