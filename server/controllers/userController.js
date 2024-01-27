@@ -596,7 +596,7 @@ exports.remove_team_member = (req, res) => {
               });
             });
           } else {
-            res.send(`<script>alert("To delete the team as a tema owner, you must remove all other team members first."); window.history.back();</script>`);;
+            res.send(`<script>alert("To delete the team as a team owner, you must remove all other team members first."); window.history.back();</script>`);;
           }
         });
       } else {

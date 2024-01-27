@@ -1,101 +1,154 @@
 <h1>Application:</h1>
-      <h4 class="pb-4">
-        First, fill out some personal information! Then, proceed to making a
-        team and adding team members (up to 4)!
-      </h4>
-      <form action="/application" , method="POST">
-        <div class="form-group">
-          <label for="university">University Name</label><br />
-        <input
-          type="input"
-          id="university"
-          name="university"
-          placeholder="Enter Your University (ie: Northeastern University)"
-          class="form-control"
-        /><br />
-        </div>
+<h4 class="pb-4">
+  First, fill out some personal information! Then, proceed to making a
+  team and adding team members (up to 4)!
+</h4>
+<form action="/application" , method="POST">
 
-        <div class="form-group">
-          <label for="university_email">University Email (must end in .edu)</label
-          ><br />
-          <input
-            type="input"
-            id="university_email"
-            name="university_email"
-            placeholder="doe.john@university.edu"
-            class="form-control"
-          /><br />
-        </div>
-        
-        <div class="form-group mt-3">
-          <div class="form-check form-check-inline">
-            <label for="over_18">Will you be 18 or older by the start of the hackathon?</label><br />
-            <fieldset>
-              <legend></legend>
-              <label for="over_18">Yes:</label>
-              <input
-                type="radio"
-                id="over_18"
-                name="over_18"
-                value="true"
-                required
-              />
-          </div>
+  <div class="form-group">
+  <label for="university">University Name</label><br />
+  <select id="university" name="university" class="form-control" required onchange="showOtherUniversityField()">
+    <option value="" disabled selected>Select your university (Dropdown)</option>
+    <option value="Northeastern University">Northeastern University</option>
+    <option value="UC Berkeley">UC Berkeley</option>
+    <option value="San Francisco State University">San Francisco State University</option>
+    <option value="College of Alameda">College of Alameda</option>
+    <option value="University of San Francisco">University of San Francisco</option>
+    <option value="California College of the Arts">California College of the Arts</option>
+    <option value="San Francisco Art Institute">San Francisco Art Institute</option>
+    <option value="San Francisco Conservatory of Music">San Francisco Conservatory of Music</option>
+    <option value="California State University, East Bay">California State University, East Bay</option>
+    <option value="Mills College">Mills College</option>
+    <option value="Holy Names University">Holy Names University</option>
+    <option value="Samuel Merritt University">Samuel Merritt University</option>
+    <option value="Saint Mary's College of California">Saint Mary's College of California</option>
+    <option value="Golden Gate University">Golden Gate University</option>
+    <option value="Stanford University">Stanford University</option>
+    <option value="University of Santa Clara">University of Santa Clara</option>
+    <option value="San Jose State University">San Jose State University</option>
+    <option value="Community College">Community College</option>
+    <option value="other">Other</option>
+  </select><br />
+  <input type="input" id="other_university" name="other_university" placeholder="Please specify" class="form-control mt-2" style="display:none;" />
+</div>
 
-          <div class="form-check form-check-inline">
-            <label for="over_18">No:</label>
-            <input
-              type="radio"
-              id="over_18"
-              name="over_18"
-              value="false"
-              required
-            />
-          </fieldset>
-          </div>
-        </div>
+  <div class="form-group">
+    <label for="university_email">University Email (must end in .edu)</label><br />
+    <input type="input" id="university_email" name="university_email" placeholder="doe.john@university.edu"
+      class="form-control" /><br />
+  </div>
 
-        <div class="form-group">
-          <div class="form-check form-check-inline">
-            <label for="have_id">Do You Have a College Issued ID?</label><br />
-            <fieldset>
-              <legend></legend>
-              <label for="id_yes">Yes:</label>
-              <input
-                type="radio"
-                id="id_yes"
-                name="have_id"
-                value="true"
-                required
-              />
-          </div>
+  <div class="form-group mt-3">
+    <div class="form-check form-check-inline">
+      <label for="over_18">Will you be 18 or older by the start of the hackathon?</label><br />
+      <fieldset>
+        <legend></legend>
+        <label for="over_18">Yes:</label>
+        <input type="radio" id="over_18" name="over_18" value="true" required />
+    </div>
 
-          <div class="form-check form-check-inline">
-            <label for="id_no">No:</label>
-            <input
-              type="radio"
-              id="id_no"
-              name="have_id"
-              value="false"
-              required
-            />
-          </fieldset>
-          </div>
-        </div>                              
+    <div class="form-check form-check-inline">
+      <label for="over_18">No:</label>
+      <input type="radio" id="over_18" name="over_18" value="false" required />
+      </fieldset>
+    </div>
+  </div>
 
-        <div class="form-group mt-5">
-          <label for="hackathon_experience"
-            >What is your experience so far with hackathons?</label
-          ><br />
-          <input
-            type="input"
-            id="hackathon_experience"
-            name="hackathon_experience"
-            placeholder="No experience"
-            class="form-control"
-          /><br />
-        </div>
+  <div class="form-group">
+    <div class="form-check form-check-inline">
+      <label for="have_id">Do You Have a College Issued ID?</label><br />
+      <fieldset>
+        <legend></legend>
+        <label for="id_yes">Yes:</label>
+        <input type="radio" id="id_yes" name="have_id" value="true" required />
+    </div>
 
-        <div class="">
-          <input type="submit" value="Submit" class="btn btn-danger fs-2 w-100" /><br />
-        </form>
+    <div class="form-check form-check-inline">
+      <label for="id_no">No:</label>
+      <input type="radio" id="id_no" name="have_id" value="false" required />
+      </fieldset>
+    </div>
+  </div>
+
+  <div class="form-group mt-4">
+    <label for="gender">Gender</label><br />
+    <select id="gender" name="gender" class="form-control" required onchange="showOtherGenderField()">
+      <option value="" disabled selected>Select your gender (Dropdown)</option>
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+      <option value="nonbinary">Nonbinary</option>
+      <option value="other">Other</option>
+    </select>
+    <input type="input" id="other_gender" name="other_gender" placeholder="Please specify" class="form-control mt-2"
+      style="display:none;" />
+  </div>
+
+  <div class="form-group mt-4">
+    <label for="race">Race</label><br />
+    <select id="race" name="race" class="form-control" required>
+      <option value="" disabled selected>Select your race (Dropdown)</option>
+      <option value="american_indian">American Indian</option>
+      <option value="asian">Asian</option>
+      <option value="black">Black</option>
+      <option value="pacific_islander_hawaiian">Pacific Islander/Hawaiian</option>
+      <option value="white">White</option>
+      <option value="more_than_one">More Than One Race</option>
+      <option value="other">Other</option>
+    </select>
+  </div>
+
+  <!-- Shirt Size Field -->
+  <div class="form-group mt-4">
+    <label for="shirt_size">Shirt Size</label><br />
+    <select id="shirt_size" name="shirt_size" class="form-control" required>
+      <option value="small">Small</option>
+      <option value="medium">Medium</option>
+      <option value="large">Large</option>
+      <option value="extra_large">Extra Large</option>
+    </select>
+  </div>
+
+  <div class="form-group mt-5">
+    <label for="hackathon_experience">What is your experience so far with hackathons?</label><br />
+    <input type="input" id="hackathon_experience" name="hackathon_experience" placeholder="No experience"
+      class="form-control" /><br />
+  </div>
+
+  <div class="">
+    <input type="submit" value="Submit" class="btn btn-danger fs-2 w-100" /><br />
+</form>
+
+
+<script>
+  function showOtherGenderField() {
+    var genderSelect = document.getElementById('gender');
+    var otherGenderInput = document.getElementById('other_gender');
+    if (genderSelect.value === 'other') {
+      otherGenderInput.style.display = 'block';
+    } else {
+      otherGenderInput.style.display = 'none';
+    }
+  }
+</script>
+
+<script>
+function showOtherUniversityField() {
+  var universitySelect = document.getElementById('university');
+  var otherUniversityInput = document.getElementById('other_university');
+  if (universitySelect.value === 'other') {
+    otherUniversityInput.style.display = 'block';
+  } else {
+    otherUniversityInput.style.display = 'none';
+  }
+}
+</script>
+
+<script>
+  document.getElementById('applicationForm').addEventListener('submit', function(event) {
+    var email = document.getElementById('university_email').value;
+    if (!email.endsWith('.edu')) {
+      alert('The university email must end in .edu');
+      event.preventDefault(); // Prevent form submission
+    }
+  });
+</script>
