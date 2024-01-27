@@ -47,7 +47,7 @@ exports.send_email = (req, res) => {
         // Sending a client-side script for the alert
         res.send(
           `<script>alert("Error inserting email into database"); window.location.href = "/";</script>`
-        )
+        );
       } else {
         console.log("Email inserted successfully");
         // Sending a client-side script for the alert
@@ -88,7 +88,9 @@ exports.view_create_team = (req, res) => {
   `;
   connection.query(queryFindTeamAndOwner, [google_id], (err, teams) => {
     if (err) {
-      res.send(`<script>alert("Error retrieving team and owner information"); window.history.back();</script>`);
+      res.send(
+        `<script>alert("Error retrieving team and owner information"); window.history.back();</script>`
+      );
     }
 
     const accepted_teams = teams.filter(
@@ -119,7 +121,9 @@ exports.view_create_team = (req, res) => {
 
       connection.query(queryGetTeammates, [team_id], (err, teammates) => {
         if (err) {
-          ;res.send(`<script>alert("Error retrieving team members information"); window.history.back();</script>`);
+          res.send(
+            `<script>alert("Error retrieving team members information"); window.history.back();</script>`
+          );
           // console.log(err);
           // return res
           //   .status(500)
@@ -174,7 +178,9 @@ exports.view_team_invitations = (req, res) => {
   `;
   connection.query(queryFindTeamAndOwner, [google_id], (err, teams) => {
     if (err) {
-      res.send(`<script>alert("Error retreiving team and owner information"); window.history.back();</script>`);
+      res.send(
+        `<script>alert("Error retreiving team and owner information"); window.history.back();</script>`
+      );
       // console.log(err);
       // return res
       //   .status(500)
@@ -208,7 +214,6 @@ exports.view_team_by_team_id = (req, res) => {
 
   connection.query(queryGetTeammates, [team_id], (err, result) => {
     if (err) {
-      
       // console.log(err);
       // return res.status(500).send("Error retrieving team members information");
     }
@@ -249,7 +254,9 @@ exports.view_open_teams = (req, res) => {
   `;
   connection.query(queryFindTeamAndOwner, [1], (err, teams) => {
     if (err) {
-      res.send(`<script>alert("Error retreiving team and owner information"); window.history.back();</script>`);
+      res.send(
+        `<script>alert("Error retreiving team and owner information"); window.history.back();</script>`
+      );
     }
     // Send the teammates' information to the client, including a flag indicating if the user is the owner
     res.render("open_teams", {
@@ -268,18 +275,24 @@ exports.submit_create_team = (req, res) => {
   connection.query(queryCheckTeam, [google_id, "ACCEPTED"], (err, teams) => {
     if (err) {
       console.log(err);
-      res.send(`<script>alert("Error checking for existing team"); window.history.back();</script>`);
+      res.send(
+        `<script>alert("Error checking for existing team"); window.history.back();</script>`
+      );
     }
 
     if (teams.length > 0) {
       // User already has a team, so don't allow creating a new one
-      res.send(`<script>alert("You have a team and cannot create another one"); window.history.back();</script>`);
+      res.send(
+        `<script>alert("You have a team and cannot create another one"); window.history.back();</script>`
+      );
     }
 
     // No existing team found for the user, proceed with team creation
     connection.beginTransaction((err) => {
       if (err) {
-        res.send(`<script>alert("Error starting transaction"); window.history.back();</script>`);
+        res.send(
+          `<script>alert("Error starting transaction"); window.history.back();</script>`
+        );
       }
 
       // Insert the new team into the teams table
@@ -295,7 +308,9 @@ exports.submit_create_team = (req, res) => {
             console.log(err);
             // Rollback the transaction in case of error
             connection.rollback(() => {
-              res.send(`<script>alert("Error inserting team"); window.history.back();</script>`);
+              res.send(
+                `<script>alert("Error inserting team"); window.history.back();</script>`
+              );
               // res.status(500).send("Error inserting team");
             });
             return;
@@ -317,7 +332,9 @@ exports.submit_create_team = (req, res) => {
                 console.log(err);
                 // Rollback the transaction in case of error
                 connection.rollback(() => {
-                  res.send(`<script>alert("Error adding team owner to team members"); window.history.back();</script>`);
+                  res.send(
+                    `<script>alert("Error adding team owner to team members"); window.history.back();</script>`
+                  );
                   // res
                   //   .status(500)
                   //   .send("Error adding team owner to team members");
@@ -330,7 +347,9 @@ exports.submit_create_team = (req, res) => {
                 if (err) {
                   console.log(err);
                   connection.rollback(() => {
-                    res.send(`<script>alert("Error during transaction commit"); window.history.back();</script>`);
+                    res.send(
+                      `<script>alert("Error during transaction commit"); window.history.back();</script>`
+                    );
                     // res.status(500).send("Error during transaction commit");
                   });
                   return;
@@ -365,11 +384,15 @@ exports.add_team_members = (req, res) => {
           res.redirect("/create_team");
         } else {
           console.log(result);
-          res.send(`<script>alert("Team or user not found. Your teammate has not registered for this hackathon using this email. Enter a new email, or ask your teammate to register first before inviting them."); window.history.back();</script>`);
+          res.send(
+            `<script>alert("Team or user not found. Your teammate has not registered for this hackathon using this email. Enter a new email, or ask your teammate to register first before inviting them."); window.history.back();</script>`
+          );
         }
       } else {
         console.log(err);
-        res.send(`<script>alert("An error occurred while adding the team member."); window.history.back();</script>`);
+        res.send(
+          `<script>alert("An error occurred while adding the team member."); window.history.back();</script>`
+        );
       }
     }
   );
@@ -386,54 +409,89 @@ exports.view_application = (req, res) => {
 };
 
 exports.submit_application = (req, res) => {
-  const { university, over_18, have_id, hackathon_experience } = req.body;
-  const have_id_boolean = have_id === "true" ? 1 : 0;
-  const over_18_boolean = have_id === "true" ? 1 : 0;
-  console.log(
+  const {
     university,
-    over_18_boolean,
-    have_id_boolean,
-    hackathon_experience
-  );
+    university_email,
+    phone_number,
+    over_18,
+    have_id,
+    hackathon_experience,
+    shirt_size,
+    race,
+    gender,
+    other_gender,
+    other_university,
+  } = req.body;
+  const have_id_boolean = have_id === "true" ? 1 : 0;
+  const over_18_boolean = over_18 === "true" ? 1 : 0;
+  const mlh_sharing_optional = req.body.mlh_sharing_optional ? 1 : 0;
+
+  // Handle 'Other' cases for university and gender
+  const finalUniversity =
+    university === "other" ? other_university : university;
+  const finalGender = gender === "other" ? other_gender : gender;
 
   if (req.isAuthenticated()) {
-    const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.id
-    console.log(google_id);
+    const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.google_id
+
     let query = ` 
         UPDATE users 
         SET 
           university = ?, 
+          university_email = ?,
+          phone_number = ?,
           over_18 = ?, 
           have_id = ?, 
-          hackathon_experience = ?
+          hackathon_experience = ?,
+          shirt_size = ?,
+          race = ?,
+          gender = ?, 
+          mlh_sharing_optional = ?
         WHERE google_id = ?
       `;
 
     connection.query(
       query,
       [
-        university,
+        finalUniversity,
+        university_email, 
+        phone_number,
         over_18_boolean,
         have_id_boolean,
         hackathon_experience,
+        shirt_size,
+        race,
+        finalGender,
+        mlh_sharing_optional,
         google_id,
       ],
       (err, result) => {
         if (err) {
-          // Handle the error, maybe log it and send a response to the client
-          res.send(`<script>alert("Error updating your information"); window.history.back();</script>`);
-          // console.error("Error updating user data: ", err);
-          // res.status(500).send("Error updating your information");
+          console.log(err)
+          res.send(
+            `<script>alert("Error updating your information"); window.history.back();</script>`
+          );
+        } else if(!university_email.endsWith(".edu")){ 
+          res.send(
+            `<script>alert("You must enter a valid university email that ends in '.edu'"); window.history.back();</script>`
+          );
+        } else if (over_18_boolean == 0){ 
+          res.send(
+            `<script>alert("You must be 18 or older by the start of the hackathon"); window.history.back();</script>`
+          );
+        } else if(have_id_boolean == 0){
+          res.send(
+            `<script>alert("You must have a college issued ID"); window.history.back();</script>`
+          );
         } else {
-          // Handle a successful update, maybe send a success message to the client
-          // console.log("User data updated successfully");
           res.redirect("/create_team");
         }
       }
     );
   } else {
-    // User is not authenticated
-    res.send(`<script>alert("You need to be logged in to submit this form"); window.history.back();</script>`);
+    res.send(
+      `<script>alert("You need to be logged in to submit this form"); window.history.back();</script>`
+    );
   }
 };
 
@@ -446,13 +504,17 @@ exports.accept_team_invitation = (req, res) => {
   connection.query(queryCheckTeam, [google_id], (err, teams) => {
     if (err) {
       console.log(err);
-      res.send(`<script>alert("Error checking for existing team"); window.history.back();</script>`);
+      res.send(
+        `<script>alert("Error checking for existing team"); window.history.back();</script>`
+      );
       // return res.status(500).send("Error checking for existing team");
     }
 
     if (teams.length > 0) {
       // User already has a team, so don't allow joining a new one
-      res.send(`<script>alert("You already have a team and cannot join another one"); window.history.back();</script>`);
+      res.send(
+        `<script>alert("You already have a team and cannot join another one"); window.history.back();</script>`
+      );
       // return res
       //   .status(409)
       //   .send("You already have a team and cannot join another one");
@@ -461,14 +523,18 @@ exports.accept_team_invitation = (req, res) => {
       const queryCountMembers = `SELECT COUNT(*) AS memberCount FROM team_members WHERE team_id = ? AND accepted_invitation = 'ACCEPTED'`;
       connection.query(queryCountMembers, [team_id], (err, results) => {
         if (err) {
-          res.send(`<script>alert("Error counting team members"); window.history.back();</script>`);
+          res.send(
+            `<script>alert("Error counting team members"); window.history.back();</script>`
+          );
           // console.log(err);
           // return res.status(500).send("Error counting team members");
         }
 
         if (results[0].memberCount >= 4) {
           // Team is already at maximum capacity
-          res.send(`<script>alert("Team is already at maximum number of members. You can only have up to 4 accepted team members in one team."); window.history.back();</script>`);
+          res.send(
+            `<script>alert("Team is already at maximum number of members. You can only have up to 4 accepted team members in one team."); window.history.back();</script>`
+          );
           // return res
           //   .status(409)
           //   .send("The team already has the maximum number of members");
@@ -489,7 +555,9 @@ exports.accept_team_invitation = (req, res) => {
               } else {
                 // console.log(err);
                 // res.send("Update did not work");
-                res.send(`<script>alert("Update did not work"); window.history.back();</script>`);
+                res.send(
+                  `<script>alert("Update did not work"); window.history.back();</script>`
+                );
               }
             }
           );
@@ -514,7 +582,9 @@ exports.decline_team_invitation = (req, res) => {
     } else {
       // console.log(err);
       // res.send("update did not work");
-      res.send(`<script>alert("Update did not work"); window.history.back();</script>`);
+      res.send(
+        `<script>alert("Update did not work"); window.history.back();</script>`
+      );
     }
   });
 };
@@ -532,13 +602,17 @@ exports.remove_team_member = (req, res) => {
 
   connection.query(queryFindTeamAndOwner, [member_google_id], (err, result) => {
     if (err) {
-      res.send(`<script>alert("Error finding team member"); window.history.back();</script>`);
+      res.send(
+        `<script>alert("Error finding team member"); window.history.back();</script>`
+      );
       // console.log(err);
       // return res.status(500).send("Error finding team member");
     }
 
     if (result.length === 0) {
-      res.send(`<script>alert("Team member not found"); window.history.back();</script>`);
+      res.send(
+        `<script>alert("Team member not found"); window.history.back();</script>`
+      );
       // return res.status(404).send("Team member not found");
     }
 
@@ -555,12 +629,16 @@ exports.remove_team_member = (req, res) => {
       if (err) {
         console.log(err);
         // return res.status(500).send("Error checking team owner");
-        res.send(`<script>alert("Error checking team owner"); window.history.back();</script>`);
+        res.send(
+          `<script>alert("Error checking team owner"); window.history.back();</script>`
+        );
       }
 
       if (result.length === 0) {
         // return res.status(404).send("Team not found");
-        res.send(`<script>alert("Team owner not found"); window.history.back();</script>`);
+        res.send(
+          `<script>alert("Team owner not found"); window.history.back();</script>`
+        );
       }
 
       const owner_google_id = result[0].created_by_google_id;
@@ -571,7 +649,9 @@ exports.remove_team_member = (req, res) => {
         connection.query(queryCountMembers, [teamID], (err, results) => {
           if (err) {
             // console.log(err);
-            res.send(`<script>alert("Error checking team owner"); window.history.back();</script>`);
+            res.send(
+              `<script>alert("Error checking team owner"); window.history.back();</script>`
+            );
           }
 
           // If it's only the owner in the team, delete the team and team members
@@ -581,7 +661,9 @@ exports.remove_team_member = (req, res) => {
               if (err) {
                 // console.log(err);
                 // return res.status(500).send("Error removing team members");
-                res.send(`<script>alert("Error removing team members"); window.history.back();</script>`);
+                res.send(
+                  `<script>alert("Error removing team members"); window.history.back();</script>`
+                );
               }
 
               const queryRemoveTeam = `DELETE FROM teams WHERE team_id = ?`;
@@ -589,14 +671,18 @@ exports.remove_team_member = (req, res) => {
                 if (err) {
                   console.log(err);
                   // return res.status(500).send("Error removing team");
-                  res.send(`<script>alert("Error removing team"); window.history.back();</script>`);
+                  res.send(
+                    `<script>alert("Error removing team"); window.history.back();</script>`
+                  );
                 }
 
                 res.redirect("/create_team");
               });
             });
           } else {
-            res.send(`<script>alert("To delete the team as a team owner, you must remove all other team members first."); window.history.back();</script>`);;
+            res.send(
+              `<script>alert("To delete the team as a team owner, you must remove all other team members first."); window.history.back();</script>`
+            );
           }
         });
       } else {
@@ -611,13 +697,17 @@ exports.remove_team_member = (req, res) => {
           [member_google_id, teamID],
           (err, result) => {
             if (err) {
-              res.send(`<script>alert("Error removing team member"); window.history.back();</script>`);
+              res.send(
+                `<script>alert("Error removing team member"); window.history.back();</script>`
+              );
               // console.log(err);
               // return res.status(500).send("Error removing team member");
             }
 
             if (result.affectedRows === 0) {
-              res.send(`<script>alert("No team member removed"); window.history.back();</script>`);
+              res.send(
+                `<script>alert("No team member removed"); window.history.back();</script>`
+              );
               // return res.status(404).send("No team member removed");
             }
 
