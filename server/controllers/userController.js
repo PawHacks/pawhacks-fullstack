@@ -233,24 +233,25 @@ exports.view_open_teams = (req, res) => {
 
   // Query to find the team and the owner's Google ID where the user is a member
   const queryFindTeamAndOwner = `
-    SELECT 
-      t.team_id, 
-      t.team_name, 
-      t.created_by_google_id, 
-      t.is_open, 
-      tm.accepted_invitation,
-      owner.full_name AS owner_full_name,
-      owner.email AS owner_email
-    FROM 
-      team_members tm
-    INNER JOIN 
-      teams t ON tm.team_id = t.team_id
-    LEFT JOIN 
-      users owner ON t.created_by_google_id = owner.google_id
-    WHERE 
-      t.is_open = ?
-    GROUP BY 
-      t.team_id
+  SELECT 
+  t.team_id, 
+  t.team_name, 
+  t.created_by_google_id, 
+  t.is_open, 
+  GROUP_CONCAT(DISTINCT tm.accepted_invitation) AS accepted_invitations,
+  GROUP_CONCAT(DISTINCT owner.full_name) AS owner_full_names,
+  GROUP_CONCAT(DISTINCT owner.email) AS owner_emails
+FROM 
+  team_members tm
+INNER JOIN 
+  teams t ON tm.team_id = t.team_id
+LEFT JOIN 
+  users owner ON t.created_by_google_id = owner.google_id
+WHERE 
+  t.is_open = 1
+GROUP BY 
+  t.team_id, t.team_name, t.created_by_google_id, t.is_open
+
   `;
   connection.query(queryFindTeamAndOwner, [1], (err, teams) => {
     if (err) {
@@ -420,7 +421,9 @@ exports.view_application = (req, res) => {
 
       // Attach the result to the request object to use in the next middleware or route handler
       // Render the application page with the completedApplication variable
-      res.render("application", { NotCompletedApplication: NotCompletedApplication });
+      res.render("application", {
+        NotCompletedApplication: NotCompletedApplication,
+      });
     });
   } else {
     // User is not authenticated, redirect to the login page
