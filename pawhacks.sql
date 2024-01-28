@@ -29,7 +29,7 @@ CREATE TABLE users (
   hackathon_experience VARCHAR(500),
   gender VARCHAR(50),
   race ENUM('american_indian', 'asian', 'african_american', 'pacific_islander', 'caucasian', 'other'),
-  shirt_size ENUM('S', 'M', 'L', 'XL'),
+  shirt_size VARCHAR(50),
   phone_number VARCHAR(15), -- New column for phone number
   PRIMARY KEY (user_id),
   UNIQUE KEY unique_email (email), -- Named constraint for uniqueness
