@@ -27,8 +27,8 @@ CREATE TABLE users (
   have_id TINYINT(1),
   mlh_sharing_option TINYINT(1),
   hackathon_experience VARCHAR(500),
-  gender ENUM VARCHAR(50) NOT NULL,
-  race ENUM('american_indian', 'asian', 'black', 'pacific_islander', 'white', 'other') NOT NULL,
+  gender VARCHAR(50) NOT NULL,
+  race ENUM('american_indian', 'asian', 'african_american', 'pacific_islander', 'caucasian', 'other') NOT NULL,
   shirt_size ENUM('S', 'M', 'L', 'XL') NOT NULL,
   phone_number VARCHAR(15), -- New column for phone number
   PRIMARY KEY (user_id),
