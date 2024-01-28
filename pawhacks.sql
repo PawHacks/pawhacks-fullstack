@@ -18,18 +18,18 @@ CREATE TABLE users (
   user_id INT NOT NULL AUTO_INCREMENT,
   google_id VARCHAR(21) NOT NULL,
   first_name VARCHAR(255) NOT NULL,
-  last_name VARCHAR(255) NOT NULL,
+  last_name VARCHAR(255),
   full_name VARCHAR(255) NOT NULL, -- Changed from VARCHAR(128) to VARCHAR(255)
   email VARCHAR(255) NOT NULL,
-  university_email VARCHAR(255) NOT NULL,
+  university_email VARCHAR(255),
   university VARCHAR(255),
   over_18 TINYINT(1),
   have_id TINYINT(1),
   mlh_sharing_option TINYINT(1),
   hackathon_experience VARCHAR(500),
-  gender VARCHAR(50) NOT NULL,
-  race ENUM('american_indian', 'asian', 'african_american', 'pacific_islander', 'caucasian', 'other') NOT NULL,
-  shirt_size ENUM('S', 'M', 'L', 'XL') NOT NULL,
+  gender VARCHAR(50),
+  race ENUM('american_indian', 'asian', 'african_american', 'pacific_islander', 'caucasian', 'other'),
+  shirt_size ENUM('S', 'M', 'L', 'XL'),
   phone_number VARCHAR(15), -- New column for phone number
   PRIMARY KEY (user_id),
   UNIQUE KEY unique_email (email), -- Named constraint for uniqueness
