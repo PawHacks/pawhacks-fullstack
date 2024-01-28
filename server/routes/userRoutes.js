@@ -14,6 +14,9 @@ router.post("/application", userController.submit_application);
 router.get("/create_team", userController.view_create_team);
 router.post("/create_team", userController.submit_create_team);
 router.get("/open_teams", userController.view_open_teams)
+router.post('/change_open_team', userController.change_open_team);
+router.get("/refer", userController.view_refer)
+router.post("/refer", userController.submit_refer)
 router.get("/view_team/:team_id", userController.view_team_by_team_id);
 router.get("/team_invitations", userController.view_team_invitations)
 router.post("/add_team_members", userController.add_team_members);

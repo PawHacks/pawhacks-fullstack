@@ -454,7 +454,7 @@ exports.submit_application = (req, res) => {
       query,
       [
         finalUniversity,
-        university_email, 
+        university_email,
         phone_number,
         over_18_boolean,
         have_id_boolean,
@@ -467,19 +467,19 @@ exports.submit_application = (req, res) => {
       ],
       (err, result) => {
         if (err) {
-          console.log(err)
+          console.log(err);
           res.send(
             `<script>alert("Error updating your information"); window.history.back();</script>`
           );
-        } else if(!university_email.endsWith(".edu")){ 
+        } else if (!university_email.endsWith(".edu")) {
           res.send(
             `<script>alert("You must enter a valid university email that ends in '.edu'"); window.history.back();</script>`
           );
-        } else if (over_18_boolean == 0){ 
+        } else if (over_18_boolean == 0) {
           res.send(
             `<script>alert("You must be 18 or older by the start of the hackathon"); window.history.back();</script>`
           );
-        } else if(have_id_boolean == 0){
+        } else if (have_id_boolean == 0) {
           res.send(
             `<script>alert("You must have a college issued ID"); window.history.back();</script>`
           );
@@ -716,6 +716,88 @@ exports.remove_team_member = (req, res) => {
         );
       }
     });
+  });
+};
+
+exports.change_open_team = (req, res) => {
+  const google_id = req.user.google_id;
+  const new_status = req.body.team_status === "open" ? 1 : 0;
+
+  // Update the 'is_open' status of the team where the user is the owner
+  const query = `
+    UPDATE teams
+    SET is_open = ?
+    WHERE created_by_google_id = ?`;
+
+  connection.query(query, [new_status, google_id], (err, result) => {
+    if (err) {
+      console.log(err);
+      res.send(
+        `<script>alert("An error occurred while changing the team status."); window.history.back();</script>`
+      );
+    } else {
+      res.redirect("/create_team"); // Redirect to a relevant page after status change
+    }
+  });
+};
+
+exports.view_refer = (req, res) => {
+  res.render("refer");
+};
+
+exports.submit_refer = (req, res) => {
+  const google_id = req.user.google_id; // Assuming this is set after the user logs in
+
+  // Define the query to get the logged-in user's name and email
+  const queryGetReferrerInfo = `
+    SELECT full_name, email 
+    FROM users 
+    WHERE google_id = ?
+  `;
+
+  // Execute the query to get the referrer's information
+  connection.query(queryGetReferrerInfo, [google_id], (err, results) => {
+    if (err) {
+      console.error("Error fetching referrer info:", err);
+      return res.send(
+        `<script>alert("There was an error retrieving your information."); window.history.back();</script>`
+      );
+    }
+
+    if (results.length > 0) {
+      const referrer_name = results[0].full_name;
+      const referrer_email = results[0].email;
+
+      // Extract referee info from the request body
+      const { referee_name, referee_email } = req.body;
+
+      // Prepare the SQL query to insert the referral into the database
+      const queryInsertReferral = `
+        INSERT INTO referral (referrer_name, referrer_email, referee_name, referee_email) 
+        VALUES (?, ?, ?, ?)
+      `;
+
+      // Execute the query to insert the referral
+      connection.query(
+        queryInsertReferral,
+        [referrer_name, referrer_email, referee_name, referee_email],
+        (err, insertResult) => {
+          if (err) {
+            console.error("Error submitting referral:", err);
+            return res.send(
+              `<script>alert("There was an error processing your referral."); window.history.back();</script>`
+            );
+          }
+          res.send(
+            `<script>alert("Refer successful"); window.history.back();</script>`
+          );
+        }
+      );
+    } else {
+      res.send(
+        `<script>alert("Referrer information not found."); window.history.back();</script>`
+      );
+    }
   });
 };
 

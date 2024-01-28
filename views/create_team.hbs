@@ -15,7 +15,7 @@
   </thead>
   <tbody>
 
-  <h5>Team {{team_name}} </h5>
+  <h5>Team Name: {{team_name}} </h5>
   <h5>Open Team: {{is_open}} </h5>
   <h7>Open team means strangers can ask to join your team</h7>
     {{#each teammates}}
@@ -93,8 +93,18 @@
 {{#if is_owner}}
 <h5>You are the owner of this team. You may add up to 3 other members, for a total team size of 4.  </h5>
 <h5>Upon adding a team member, they must accept your team invitation. The status of members are showed above. A member will be shown as having accepted, declined, or pending the team invitation.</h5>
+<h5>Change Your Team's Open/Closed Status</h5>
+  <form action="/change_open_team" method="POST">
+    <input type="radio" id="open" name="team_status" value="open" required>
+    <label for="open">Open (Strangers can join)</label><br>
+    <input type="radio" id="closed" name="team_status" value="closed" required>
+    <label for="closed">Closed (Strangers cannot join)</label><br>
+    <input type="submit" value="Change Status">
+  </form>
+
+
 <form action="/add_team_members" method="POST">
-  <label for="add_team_members_email">Add Team Members (enter email)</label><br>
+  <label for="add_team_members_email">Add Team Members (enter google email, not university email)</label><br>
   <input type="input" id="add_team_members_email" name="add_team_members_email" placeholder="yourfriend@email.com">
 
   <input type="submit" value="Submit"><br>
