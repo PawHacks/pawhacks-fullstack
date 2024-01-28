@@ -28,6 +28,7 @@
         <li class="nav-item">
           <a class="nav-link active" aria-current="page" href="/application">Application</a>
         </li>
+        {{#unless NotCompletedApplication}}
         <li class="nav-item">
           <a class="nav-link active" aria-current="page" href="/create_team">Your Team</a>
         </li>
@@ -41,6 +42,7 @@
           <a class="nav-link active" aria-current="page" href="/refer">Refer</a>
         </li>
       </ul>
+      {{/unless}}
       <!-- Right-aligned Logout link -->
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">

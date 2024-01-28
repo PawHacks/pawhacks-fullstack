@@ -399,9 +399,28 @@ exports.add_team_members = (req, res) => {
 };
 
 exports.view_application = (req, res) => {
+  const google_id = req.user.google_id;
+
   if (req.isAuthenticated()) {
-    // User is authenticated, render the application page
-    res.render("application");
+    const query = "SELECT university_email FROM users WHERE google_id = ?";
+
+    connection.query(query, [google_id], (err, results) => {
+      if (err) {
+        console.error("Database query error:", err);
+        return res.redirect("/error"); // Or handle the error in another way
+      }
+
+      let NotCompletedApplication = true;
+
+      // Check if the university_email field is not empty
+      if (results.length > 0 && results[0].university_email) {
+        NotCompletedApplication = false;
+      }
+
+      // Attach the result to the request object to use in the next middleware or route handler
+      // Render the application page with the completedApplication variable
+      res.render("application", { NotCompletedApplication: NotCompletedApplication });
+    });
   } else {
     // User is not authenticated, redirect to the login page
     res.redirect("/login");
