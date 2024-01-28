@@ -254,6 +254,7 @@ exports.view_open_teams = (req, res) => {
   `;
   connection.query(queryFindTeamAndOwner, [1], (err, teams) => {
     if (err) {
+      console.log(err);
       return res.send(
         `<script>alert("Error retreiving team and owner information"); window.history.back();</script>`
       );
