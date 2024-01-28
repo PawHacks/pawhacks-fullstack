@@ -25,7 +25,7 @@ CREATE TABLE users (
   university VARCHAR(255),
   over_18 TINYINT(1),
   have_id TINYINT(1),
-  mlh_sharing_option TINYINT(1),
+  mlh_sharing_optional TINYINT(1),
   hackathon_experience VARCHAR(500),
   gender VARCHAR(50),
   race ENUM('american_indian', 'asian', 'african_american', 'pacific_islander', 'caucasian', 'other'),
