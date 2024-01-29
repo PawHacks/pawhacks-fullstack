@@ -1,7 +1,11 @@
 {{#if has_team}}
   <h1>You are in a team! You cannot create another team. If you join another team, you will leave your current team.</h1>
 
-  <table class="table table-bordered table-responsive">
+    <h5>Team Name: {{team_name}} </h5>
+    <h5>Open Team: {{is_open}} </h5>
+    <h7>Open team means strangers can ask to join your team</h7>
+  <div class="table-responsive">
+  <table class="table table-bordered">
   <thead class="thead-dark">
     <tr>
       <th scope="col">#</th>
@@ -15,9 +19,6 @@
   </thead>
   <tbody>
 
-  <h5>Team Name: {{team_name}} </h5>
-  <h5>Open Team: {{is_open}} </h5>
-  <h7>Open team means strangers can ask to join your team</h7>
     {{#each teammates}}
     <tr>
       <th scope="row">{{this.id}}</th>
@@ -89,6 +90,7 @@
     {{/each}}
   </tbody>
 </table>
+  </div>
 
 {{#if is_owner}}
 <h5>You are the owner of this team. You may add up to 3 other members, for a total team size of 4.  </h5>
