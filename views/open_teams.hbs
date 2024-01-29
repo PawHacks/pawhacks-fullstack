@@ -5,8 +5,8 @@
     <tr>
       <th scope="col">#</th>
       <th scope="col">Team Name</th>
-      <th scope="col">Team Owner</th>
-      <th scope="col">Owner's Email</th>
+      {{!-- <th scope="col">Team Owner</th>
+      <th scope="col">Owner's Email</th> --}}
       <th scope="col">Open Team</th>
       <th scope="col">Action</th>
     </tr>
@@ -16,8 +16,8 @@
     <tr>
       <th scope="row">{{@index}}</th>
       <td>{{this.team_name}}</td>
-      <td>{{this.owner_full_name}}</td>
-      <td>{{this.owner_email}}</td> <!-- Display the owner's email -->
+      {{!-- <td>{{this.owner_full_name}}</td>
+      <td>{{this.owner_email}}</td> <!-- Display the owner's email --> --}}
       <td>{{#if this.is_open}}Yes{{else}}No{{/if}}</td>
       <td>
         <!-- Place buttons or links for actions here -->
