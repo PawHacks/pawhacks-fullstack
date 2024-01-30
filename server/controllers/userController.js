@@ -216,12 +216,16 @@ exports.view_team_by_team_id = (req, res) => {
     if (err) {
       // console.log(err);
       // return res.status(500).send("Error retrieving team members information");
+    } else if (result[0].is_open === 1 == 0) {
+      return res.send(
+        `<script>alert("You cannot view a team that is not open unless you are a member of the team"); window.history.back();</script>`
+      );
     }
     // Send the teammates' information to the client, including a flag indicating if the user is the owner
     res.render("view_team", {
       teammates: result,
       team_id: result[0].team_id,
-      team_name: result[0].team_id,
+      team_name: result[0].team_name,
       is_open: result[0].is_open === 1,
       google_id: google_id,
     });

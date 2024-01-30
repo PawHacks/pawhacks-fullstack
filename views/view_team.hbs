@@ -56,18 +56,18 @@
         </form>
       {{/unless}}
       {{else}}
-        {{#if (eq this.accepted_invitation 'PENDING')}}
+        {{!-- {{#if (eq this.accepted_invitation 'PENDING')}} --}}
         <form action="/accept_team_invitation/{{this.google_id}}/{{../team_id}}" method="POST">
             <button type="submit" class="btn btn-danger btn-small">
                 <i class="bi bi-check-lg"></i> Join Team
             </button>
         </form>
-        <form action="/decline_team_invitation/{{this.google_id}}/{{../team_id}}" method="POST">
+        {{!-- <form action="/decline_team_invitation/{{this.google_id}}/{{../team_id}}" method="POST">
             <button type="submit" class="btn btn-danger btn-small">
                 <i class="bi bi-person-x"></i> Decline Team Invitation
             </button>
-        </form>
-      {{else}}
+        </form> --}}
+      {{!-- {{else}} --}}
       {{#if (eq this.accepted_invitation 'ACCEPTED')}}
       {{#if (eq this.google_id ../google_id)}}
         <form action="/remove_team_member/{{this.google_id}}/{{../team_id}}" method="POST">
@@ -78,7 +78,7 @@
       {{/if}}
       {{/if}} 
       {{/if}} 
-      {{/if}} 
+      {{!-- {{/if}}  --}}
       </td>
     </tr>
     {{/each}}
