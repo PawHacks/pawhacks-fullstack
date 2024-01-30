@@ -1,12 +1,16 @@
 <!-- refer.hbs -->
-<h1>Refer a Friend</h1>
+<h1><b>Refer a Friend</b></h1>
 <form action="/refer" method="POST">
- 
-  <label for="referee_name">Friend's Name:</label>
-  <input type="text" id="referee_name" name="referee_name" required><br>
+  
+  <div class="form-group mt-4">
+    <label for="referee_name">Friend's Name:</label>
+    <input type="text" id="referee_name" name="referee_name" class="form-control" required><br>
+  </div>
 
-  <label for="referee_email">Friend's Email:</label>
-  <input type="email" id="referee_email" name="referee_email" required>
+  <div class="form-group mt-1">
+    <label for="referee_email">Friend's Email:</label>
+    <input type="email" id="referee_email" name="referee_email" class="form-control" required><br>
+  </div>
 
-  <button type="submit">Refer Now</button>
+  <button type="submit" class="mb-4 btn btn-danger">Refer Now</button>
 </form>
