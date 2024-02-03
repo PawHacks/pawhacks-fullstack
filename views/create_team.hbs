@@ -64,7 +64,7 @@
         
         {{else}}
           {{#if (eq this.accepted_invitation 'PENDING')}}
-          <form action="/accept_team_invitation/{{this.google_id}}/{{../team_id}}" method="POST">
+          {{!-- <form action="/accept_team_invitation/{{this.google_id}}/{{../team_id}}" method="POST">
               <button type="submit" class="btn btn-danger btn-small m-2">
                   <i class="bi bi-check-lg"></i> Join Team
               </button>
@@ -73,7 +73,7 @@
               <button type="submit" class="btn btn-danger btn-small m-2">
                   <i class="bi bi-person-x"></i> Decline Team Invitation
               </button>
-          </form>
+          </form> --}}
         {{else}}
         {{#if (eq this.accepted_invitation 'ACCEPTED')}}
         {{#if (eq this.google_id ../google_id)}}

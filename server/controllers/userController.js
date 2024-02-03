@@ -99,7 +99,6 @@ exports.view_create_team = (req, res) => {
     const pending_teams = teams.filter(
       (team) => team.accepted_invitation === "PENDING"
     );
-    console.log("pending teams", pending_teams);
 
     // Check if the user is part of a team
     if (accepted_teams.length !== 0) {
@@ -526,68 +525,53 @@ exports.accept_team_invitation = (req, res) => {
   const google_id = req.user.google_id;
   const team_id = req.params.team_id;
 
-  // Query to check if the user already belongs to a team
+  // Check if the user already belongs to a team with an 'ACCEPTED' status
   const queryCheckTeam = `SELECT * FROM team_members WHERE member_google_id = ? AND accepted_invitation = 'ACCEPTED'`;
   connection.query(queryCheckTeam, [google_id], (err, teams) => {
     if (err) {
       console.log(err);
-      res.send(
-        `<script>alert("Error checking for existing team"); window.history.back();</script>`
-      );
-      // return res.status(500).send("Error checking for existing team");
+      return res.send(`<script>alert("Error checking for existing team"); window.history.back();</script>`);
     }
 
     if (teams.length > 0) {
       // User already has a team, so don't allow joining a new one
-      res.send(
-        `<script>alert("You already have a team and cannot join another one"); window.history.back();</script>`
-      );
-      // return res
-      //   .status(409)
-      //   .send("You already have a team and cannot join another one");
+      return res.send(`<script>alert("You already have a team and cannot join another one"); window.history.back();</script>`);
     } else {
-      // Query to count the number of accepted members in the team
-      const queryCountMembers = `SELECT COUNT(*) AS memberCount FROM team_members WHERE team_id = ? AND accepted_invitation = 'ACCEPTED'`;
-      connection.query(queryCountMembers, [team_id], (err, results) => {
+      // Check if the user has a pending invitation for the team
+      const queryCheckPending = `SELECT * FROM team_members WHERE member_google_id = ? AND team_id = ?`;
+      connection.query(queryCheckPending, [google_id, team_id], (err, result) => {
         if (err) {
-          res.send(
-            `<script>alert("Error counting team members"); window.history.back();</script>`
-          );
-          // console.log(err);
-          // return res.status(500).send("Error counting team members");
+          console.log(err);
+          return res.send(`<script>alert("Error checking invitation status"); window.history.back();</script>`);
         }
 
-        if (results[0].memberCount >= 4) {
-          // Team is already at maximum capacity
-          res.send(
-            `<script>alert("Team is already at maximum number of members. You can only have up to 4 accepted team members in one team."); window.history.back();</script>`
-          );
-          // return res
-          //   .status(409)
-          //   .send("The team already has the maximum number of members");
-        } else {
-          // Proceed to update the member's status to 'ACCEPTED'
+        if (result.length > 0) {
+          // User has a pending invitation, update to 'ACCEPTED'
           const queryUpdateMember = `
             UPDATE team_members
             SET accepted_invitation = 'ACCEPTED' 
-            WHERE member_google_id = ?
-            AND team_id = ?
-            `;
-          connection.query(
-            queryUpdateMember,
-            [google_id, team_id],
-            (err, result) => {
-              if (!err) {
-                res.redirect("/create_team");
-              } else {
-                // console.log(err);
-                // res.send("Update did not work");
-                res.send(
-                  `<script>alert("Update did not work"); window.history.back();</script>`
-                );
-              }
+            WHERE member_google_id = ? AND team_id = ?
+          `;
+          connection.query(queryUpdateMember, [google_id, team_id], (err, updateResult) => {
+            if (err) {
+              console.log(err);
+              return res.send(`<script>alert("Error updating invitation status"); window.history.back();</script>`);
             }
-          );
+            return res.redirect("/create_team");
+          });
+        } else {
+          // User does not have a pending invitation, insert new 'ACCEPTED' status
+          const queryInsertMember = `
+            INSERT INTO team_members (team_id, member_google_id, accepted_invitation)
+            VALUES (?, ?, 'ACCEPTED')
+          `;
+          connection.query(queryInsertMember, [team_id, google_id], (err, insertResult) => {
+            if (err) {
+              console.log(err);
+              return res.send(`<script>alert("Error adding user to team"); window.history.back();</script>`);
+            }
+            return res.redirect("/create_team");
+          });
         }
       });
     }

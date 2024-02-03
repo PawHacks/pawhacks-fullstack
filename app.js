@@ -50,8 +50,8 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    //   callbackURL: "http://localhost:5000/auth/google/callback" //redirects to this url after authentication
-      callbackURL: "https://pawhacks.io/auth/google/callback", //redirects to this url after authentication
+      callbackURL: "http://localhost:5000/auth/google/callback" //redirects to this url after authentication
+      // callbackURL: "https://pawhacks.io/auth/google/callback", //redirects to this url after authentication
     },
     function (accessToken, refreshToken, profile, done) {
       console.log(profile);
