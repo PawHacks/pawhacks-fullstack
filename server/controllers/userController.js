@@ -1,6 +1,7 @@
 const mysql = require("mysql");
 const path = require("path");
 const fs = require("fs");
+const { query } = require("express");
 
 // Connection Pool
 let connection = mysql.createConnection({
@@ -202,34 +203,63 @@ exports.view_team_by_team_id = (req, res) => {
   const google_id = req.user.google_id; // The logged-in user's Google ID
   const team_id = req.params.team_id;
 
-  // Get the specific information of all the teammates from the users table
-  const queryGetTeammates = `
-          SELECT u.first_name, u.last_name, u.email, u.university, u.google_id, tm.accepted_invitation, t.team_name, t.is_open, t.team_id, t.created_by_google_id
-          FROM users u
-          INNER JOIN team_members tm ON u.google_id = tm.member_google_id
-          INNER JOIN teams t on tm.team_id = t.team_id
-          WHERE tm.team_id = ?
-        `;
+  // Adjust the query to also get the logged-in user's invitation status for the team
+  const queryGetTeamInfoAndUserStatus = `
+    SELECT 
+      t.team_id, t.team_name, t.is_open, t.created_by_google_id,
+      tm.member_google_id, tm.accepted_invitation,
+      u.first_name, u.last_name, u.email, u.university
+    FROM 
+      teams t
+    INNER JOIN 
+      team_members tm ON t.team_id = tm.team_id
+    INNER JOIN 
+      users u ON tm.member_google_id = u.google_id
+    WHERE 
+      t.team_id = ? AND tm.member_google_id = ?
+  `;
 
-  connection.query(queryGetTeammates, [team_id], (err, result) => {
+  connection.query(queryGetTeamInfoAndUserStatus, [team_id, google_id], (err, result) => {
     if (err) {
-      // console.log(err);
-      // return res.status(500).send("Error retrieving team members information");
-    } else if (result[0].is_open === 1 == 0) {
-      return res.send(
-        `<script>alert("You cannot view a team that is not open unless you are a member of the team"); window.history.back();</script>`
-      );
+      console.log(err); // Consider handling the error more gracefully
+      return res.status(500).send("Error retrieving team information.");
     }
-    // Send the teammates' information to the client, including a flag indicating if the user is the owner
-    res.render("view_team", {
-      teammates: result,
-      team_id: result[0].team_id,
-      team_name: result[0].team_name,
-      is_open: result[0].is_open === 1,
-      google_id: google_id,
+
+    // Check if the user is a pending member of a closed team
+    if (result.length === 0 || (result[0].is_open === 0 && result[0].accepted_invitation != "PENDING")) {
+      return res.send(`<script>alert("You do not have permission to view this team."); window.history.back();</script>`);
+    }
+
+    // Now, get all team members as the user is allowed to view the team
+    const queryGetAllTeammates = `
+      SELECT 
+        u.first_name, u.last_name, u.email, u.university, u.google_id, tm.accepted_invitation
+      FROM 
+        users u
+      INNER JOIN 
+        team_members tm ON u.google_id = tm.member_google_id
+      WHERE 
+        tm.team_id = ?
+    `;
+
+    connection.query(queryGetAllTeammates, [team_id], (err, teammates) => {
+      if (err) {
+        console.log(err); // Consider handling the error more gracefully
+        return res.status(500).send("Error retrieving team members information.");
+      }
+
+      // Send the teammates' information to the client, including a flag indicating if the user is the owner
+      res.render("view_team", {
+        teammates: teammates,
+        team_id: team_id,
+        team_name: result[0].team_name,
+        is_open: result[0].is_open === 1,
+        google_id: google_id,
+      });
     });
   });
 };
+
 
 exports.view_open_teams = (req, res) => {
   const google_id = req.user.google_id; // The logged-in user's Google ID
@@ -530,50 +560,72 @@ exports.accept_team_invitation = (req, res) => {
   connection.query(queryCheckTeam, [google_id], (err, teams) => {
     if (err) {
       console.log(err);
-      return res.send(`<script>alert("Error checking for existing team"); window.history.back();</script>`);
+      return res.send(
+        `<script>alert("Error checking for existing team"); window.history.back();</script>`
+      );
     }
 
     if (teams.length > 0) {
       // User already has a team, so don't allow joining a new one
-      return res.send(`<script>alert("You already have a team and cannot join another one"); window.history.back();</script>`);
+      return res.send(
+        `<script>alert("You already have a team and cannot join another one"); window.history.back();</script>`
+      );
     } else {
       // Check if the user has a pending invitation for the team
       const queryCheckPending = `SELECT * FROM team_members WHERE member_google_id = ? AND team_id = ?`;
-      connection.query(queryCheckPending, [google_id, team_id], (err, result) => {
-        if (err) {
-          console.log(err);
-          return res.send(`<script>alert("Error checking invitation status"); window.history.back();</script>`);
-        }
+      connection.query(
+        queryCheckPending,
+        [google_id, team_id],
+        (err, result) => {
+          if (err) {
+            console.log(err);
+            return res.send(
+              `<script>alert("Error checking invitation status"); window.history.back();</script>`
+            );
+          }
 
-        if (result.length > 0) {
-          // User has a pending invitation, update to 'ACCEPTED'
-          const queryUpdateMember = `
+          if (result.length > 0) {
+            // User has a pending invitation, update to 'ACCEPTED'
+            const queryUpdateMember = `
             UPDATE team_members
             SET accepted_invitation = 'ACCEPTED' 
             WHERE member_google_id = ? AND team_id = ?
           `;
-          connection.query(queryUpdateMember, [google_id, team_id], (err, updateResult) => {
-            if (err) {
-              console.log(err);
-              return res.send(`<script>alert("Error updating invitation status"); window.history.back();</script>`);
-            }
-            return res.redirect("/create_team");
-          });
-        } else {
-          // User does not have a pending invitation, insert new 'ACCEPTED' status
-          const queryInsertMember = `
+            connection.query(
+              queryUpdateMember,
+              [google_id, team_id],
+              (err, updateResult) => {
+                if (err) {
+                  console.log(err);
+                  return res.send(
+                    `<script>alert("Error updating invitation status"); window.history.back();</script>`
+                  );
+                }
+                return res.redirect("/create_team");
+              }
+            );
+          } else {
+            // User does not have a pending invitation, insert new 'ACCEPTED' status
+            const queryInsertMember = `
             INSERT INTO team_members (team_id, member_google_id, accepted_invitation)
             VALUES (?, ?, 'ACCEPTED')
           `;
-          connection.query(queryInsertMember, [team_id, google_id], (err, insertResult) => {
-            if (err) {
-              console.log(err);
-              return res.send(`<script>alert("Error adding user to team"); window.history.back();</script>`);
-            }
-            return res.redirect("/create_team");
-          });
+            connection.query(
+              queryInsertMember,
+              [team_id, google_id],
+              (err, insertResult) => {
+                if (err) {
+                  console.log(err);
+                  return res.send(
+                    `<script>alert("Error adding user to team"); window.history.back();</script>`
+                  );
+                }
+                return res.redirect("/create_team");
+              }
+            );
+          }
         }
-      });
+      );
     }
   });
 };
