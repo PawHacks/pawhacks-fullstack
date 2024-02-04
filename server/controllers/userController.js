@@ -203,48 +203,53 @@ exports.view_team_by_team_id = (req, res) => {
   const google_id = req.user.google_id; // The logged-in user's Google ID
   const team_id = req.params.team_id;
 
-  // Adjust the query to also get the logged-in user's invitation status for the team
-  const queryGetTeamInfoAndUserStatus = `
+  // First, check if the team is open or if the user is a member (pending or accepted)
+  const queryCheckTeamStatusAndMembership = `
     SELECT 
-      t.team_id, t.team_name, t.is_open, t.created_by_google_id,
-      tm.member_google_id, tm.accepted_invitation,
-      u.first_name, u.last_name, u.email, u.university
+      teams.team_id, 
+      teams.team_name, 
+      teams.is_open, 
+      team_members.member_google_id, 
+      team_members.accepted_invitation
     FROM 
-      teams t
-    INNER JOIN 
-      team_members tm ON t.team_id = tm.team_id
-    INNER JOIN 
-      users u ON tm.member_google_id = u.google_id
+      teams 
+    LEFT JOIN 
+      team_members ON teams.team_id = team_members.team_id AND team_members.member_google_id = ?
     WHERE 
-      t.team_id = ? AND tm.member_google_id = ?
+      teams.team_id = ?
   `;
 
-  connection.query(queryGetTeamInfoAndUserStatus, [team_id, google_id], (err, result) => {
+  connection.query(queryCheckTeamStatusAndMembership, [google_id, team_id], (err, teamStatusResult) => {
     if (err) {
-      console.log(err); // Consider handling the error more gracefully
-      return res.status(500).send("Error retrieving team information.");
+      console.log(err); // Log the error or handle it as appropriate
+      return res.status(500).send("Error retrieving team or membership status.");
     }
 
-    // Check if the user is a pending member of a closed team
-    if (result.length === 0 || (result[0].is_open === 0 && result[0].accepted_invitation != "PENDING")) {
+    // If no rows returned or team is closed and user is not a member, deny access
+    if (teamStatusResult.length === 0 || (!teamStatusResult[0].is_open && !teamStatusResult[0].member_google_id)) {
       return res.send(`<script>alert("You do not have permission to view this team."); window.history.back();</script>`);
     }
 
-    // Now, get all team members as the user is allowed to view the team
+    // If team is open or user is a member (pending or accepted), proceed to get team members
     const queryGetAllTeammates = `
       SELECT 
-        u.first_name, u.last_name, u.email, u.university, u.google_id, tm.accepted_invitation
+        users.first_name, 
+        users.last_name, 
+        users.email, 
+        users.university, 
+        users.google_id, 
+        team_members.accepted_invitation
       FROM 
-        users u
+        users
       INNER JOIN 
-        team_members tm ON u.google_id = tm.member_google_id
+        team_members ON users.google_id = team_members.member_google_id
       WHERE 
-        tm.team_id = ?
+        team_members.team_id = ?
     `;
 
     connection.query(queryGetAllTeammates, [team_id], (err, teammates) => {
       if (err) {
-        console.log(err); // Consider handling the error more gracefully
+        console.log(err); // Log the error or handle it as appropriate
         return res.status(500).send("Error retrieving team members information.");
       }
 
@@ -252,13 +257,14 @@ exports.view_team_by_team_id = (req, res) => {
       res.render("view_team", {
         teammates: teammates,
         team_id: team_id,
-        team_name: result[0].team_name,
-        is_open: result[0].is_open === 1,
+        team_name: teamStatusResult[0].team_name,
+        is_open: teamStatusResult[0].is_open === 1,
         google_id: google_id,
       });
     });
   });
 };
+
 
 
 exports.view_open_teams = (req, res) => {
