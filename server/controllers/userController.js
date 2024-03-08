@@ -219,19 +219,29 @@ exports.view_team_by_team_id = (req, res) => {
       teams.team_id = ?
   `;
 
-  connection.query(queryCheckTeamStatusAndMembership, [google_id, team_id], (err, teamStatusResult) => {
-    if (err) {
-      console.log(err); // Log the error or handle it as appropriate
-      return res.status(500).send("Error retrieving team or membership status.");
-    }
+  connection.query(
+    queryCheckTeamStatusAndMembership,
+    [google_id, team_id],
+    (err, teamStatusResult) => {
+      if (err) {
+        console.log(err); // Log the error or handle it as appropriate
+        return res
+          .status(500)
+          .send("Error retrieving team or membership status.");
+      }
 
-    // If no rows returned or team is closed and user is not a member, deny access
-    if (teamStatusResult.length === 0 || (!teamStatusResult[0].is_open && !teamStatusResult[0].member_google_id)) {
-      return res.send(`<script>alert("You do not have permission to view this team."); window.history.back();</script>`);
-    }
+      // If no rows returned or team is closed and user is not a member, deny access
+      if (
+        teamStatusResult.length === 0 ||
+        (!teamStatusResult[0].is_open && !teamStatusResult[0].member_google_id)
+      ) {
+        return res.send(
+          `<script>alert("You do not have permission to view this team."); window.history.back();</script>`
+        );
+      }
 
-    // If team is open or user is a member (pending or accepted), proceed to get team members
-    const queryGetAllTeammates = `
+      // If team is open or user is a member (pending or accepted), proceed to get team members
+      const queryGetAllTeammates = `
       SELECT 
         users.first_name, 
         users.last_name, 
@@ -247,25 +257,26 @@ exports.view_team_by_team_id = (req, res) => {
         team_members.team_id = ?
     `;
 
-    connection.query(queryGetAllTeammates, [team_id], (err, teammates) => {
-      if (err) {
-        console.log(err); // Log the error or handle it as appropriate
-        return res.status(500).send("Error retrieving team members information.");
-      }
+      connection.query(queryGetAllTeammates, [team_id], (err, teammates) => {
+        if (err) {
+          console.log(err); // Log the error or handle it as appropriate
+          return res
+            .status(500)
+            .send("Error retrieving team members information.");
+        }
 
-      // Send the teammates' information to the client, including a flag indicating if the user is the owner
-      res.render("view_team", {
-        teammates: teammates,
-        team_id: team_id,
-        team_name: teamStatusResult[0].team_name,
-        is_open: teamStatusResult[0].is_open === 1,
-        google_id: google_id,
+        // Send the teammates' information to the client, including a flag indicating if the user is the owner
+        res.render("view_team", {
+          teammates: teammates,
+          team_id: team_id,
+          team_name: teamStatusResult[0].team_name,
+          is_open: teamStatusResult[0].is_open === 1,
+          google_id: google_id,
+        });
       });
-    });
-  });
+    }
+  );
 };
-
-
 
 exports.view_open_teams = (req, res) => {
   const google_id = req.user.google_id; // The logged-in user's Google ID
@@ -496,18 +507,18 @@ exports.submit_application = (req, res) => {
   if (req.isAuthenticated()) {
     const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.google_id
 
-    // let query = ` 
-    //     UPDATE users 
-    //     SET 
-    //       university = ?, 
+    // let query = `
+    //     UPDATE users
+    //     SET
+    //       university = ?,
     //       university_email = ?,
     //       phone_number = ?,
-    //       over_18 = ?, 
-    //       have_id = ?, 
+    //       over_18 = ?,
+    //       have_id = ?,
     //       hackathon_experience = ?,
     //       shirt_size = ?,
     //       race = ?,
-    //       gender = ?, 
+    //       gender = ?,
     //       mlh_sharing_optional = ?
     //     WHERE google_id = ?
     //   `;
@@ -548,17 +559,18 @@ exports.submit_application = (req, res) => {
     //     } else {
     //       res.redirect("/create_team");
     //     }
-      // }
-  //   );
-  // } else {
+    // }
+    //   );
+    // } else {
     res.send(
       `<script>alert("You need to be logged in to submit this form"); window.history.back();</script>`
     );
   }
   if (over_18_boolean == 0) {
-    res.render("closed_registration")
+    res.render("closed_registration");
+  } else {
+    res.render("closed_registration");
   }
-  
 };
 
 exports.accept_team_invitation = (req, res) => {
