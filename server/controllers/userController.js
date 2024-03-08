@@ -496,65 +496,69 @@ exports.submit_application = (req, res) => {
   if (req.isAuthenticated()) {
     const google_id = req.user.google_id; // Assuming the user ID is stored in req.user.google_id
 
-    let query = ` 
-        UPDATE users 
-        SET 
-          university = ?, 
-          university_email = ?,
-          phone_number = ?,
-          over_18 = ?, 
-          have_id = ?, 
-          hackathon_experience = ?,
-          shirt_size = ?,
-          race = ?,
-          gender = ?, 
-          mlh_sharing_optional = ?
-        WHERE google_id = ?
-      `;
+    // let query = ` 
+    //     UPDATE users 
+    //     SET 
+    //       university = ?, 
+    //       university_email = ?,
+    //       phone_number = ?,
+    //       over_18 = ?, 
+    //       have_id = ?, 
+    //       hackathon_experience = ?,
+    //       shirt_size = ?,
+    //       race = ?,
+    //       gender = ?, 
+    //       mlh_sharing_optional = ?
+    //     WHERE google_id = ?
+    //   `;
 
-    connection.query(
-      query,
-      [
-        finalUniversity,
-        university_email,
-        phone_number,
-        over_18_boolean,
-        have_id_boolean,
-        hackathon_experience,
-        shirt_size,
-        race,
-        finalGender,
-        mlh_sharing_optional,
-        google_id,
-      ],
-      (err, result) => {
-        if (err) {
-          console.log(err);
-          res.send(
-            `<script>alert("Error updating your information"); window.history.back();</script>`
-          );
-        } else if (!university_email.endsWith(".edu")) {
-          res.send(
-            `<script>alert("You must enter a valid university email that ends in '.edu'"); window.history.back();</script>`
-          );
-        } else if (over_18_boolean == 0) {
-          res.send(
-            `<script>alert("You must be 18 or older by the start of the hackathon"); window.history.back();</script>`
-          );
-        } else if (have_id_boolean == 0) {
-          res.send(
-            `<script>alert("You must have a college issued ID"); window.history.back();</script>`
-          );
-        } else {
-          res.redirect("/create_team");
-        }
-      }
-    );
-  } else {
+    // connection.query(
+    //   query,
+    //   [
+    //     finalUniversity,
+    //     university_email,
+    //     phone_number,
+    //     over_18_boolean,
+    //     have_id_boolean,
+    //     hackathon_experience,
+    //     shirt_size,
+    //     race,
+    //     finalGender,
+    //     mlh_sharing_optional,
+    //     google_id,
+    //   ],
+    //   (err, result) => {
+    //     if (err) {
+    //       console.log(err);
+    //       res.send(
+    //         `<script>alert("Error updating your information"); window.history.back();</script>`
+    //       );
+    //     } else if (!university_email.endsWith(".edu")) {
+    //       res.send(
+    //         `<script>alert("You must enter a valid university email that ends in '.edu'"); window.history.back();</script>`
+    //       );
+    //     } else if (over_18_boolean == 0) {
+    //       res.send(
+    //         `<script>alert("You must be 18 or older by the start of the hackathon"); window.history.back();</script>`
+    //       );
+    //     } else if (have_id_boolean == 0) {
+    //       res.send(
+    //         `<script>alert("You must have a college issued ID"); window.history.back();</script>`
+    //       );
+    //     } else {
+    //       res.redirect("/create_team");
+    //     }
+      // }
+  //   );
+  // } else {
     res.send(
       `<script>alert("You need to be logged in to submit this form"); window.history.back();</script>`
     );
   }
+  if (over_18_boolean == 0) {
+    res.render("closed_registration")
+  }
+  
 };
 
 exports.accept_team_invitation = (req, res) => {
